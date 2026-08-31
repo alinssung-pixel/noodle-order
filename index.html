@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="拌面订单">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>拌面订单</title>
+<style>
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#111827}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1100px;margin:0 auto;padding:24px}
+h1{font-size:28px;margin:0 0 6px}.sub{color:var(--muted);margin-bottom:18px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:15px}.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px}input,select,textarea{width:100%;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+textarea{min-height:76px;resize:vertical}.flavor{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee}.flavor:last-child{border-bottom:0}.step{display:flex;align-items:center;gap:10px}.step button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:22px;cursor:pointer}.qty{width:34px;text-align:center;font-weight:700}
+.total{display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:14px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:10px;padding:12px 16px;font-size:15px;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:#fff;border:1px solid var(--line)}.danger{background:#fff;border:1px solid #f0a0a0;color:#a00}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.kpi b{font-size:28px;display:block;margin-top:6px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{padding:11px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}th{background:#fafafa}
+.small{font-size:13px;color:var(--muted)}.row-actions button{margin-right:6px}
+.receipt{display:none}
+.notice{margin-top:12px;color:var(--muted);font-size:14px}
+.badge{display:inline-block;background:#eee;border-radius:999px;padding:3px 8px;font-size:12px}
+@media(max-width:760px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kpi:last-child{grid-column:1/-1}h1{font-size:24px}}
+@media print{
+ body *{visibility:hidden}
+ #receipt,#receipt *{visibility:visible}
+ #receipt{display:block;position:absolute;left:0;top:0;width:80mm;padding:4mm;background:#fff;color:#000;font-size:13px}
+ #receipt h2{text-align:center;font-size:18px;margin:0 0 8px}
+ #receipt .line{border-top:1px dashed #000;margin:7px 0}
+ #receipt .rrow{display:flex;justify-content:space-between;margin:4px 0}
+ @page{size:80mm auto;margin:0}
+}
+
+/* ===== iPhone / PWA mobile-first overrides ===== */
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom));overscroll-behavior-y:none}
+.wrap{max-width:680px;padding:12px 12px 20px}
+h1{font-size:21px;margin:2px 0 2px}
+.sub{font-size:12px;margin-bottom:10px}
+.tabs{
+  position:fixed;z-index:1000;left:0;right:0;bottom:0;
+  margin:0;padding:7px 5px calc(7px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.96);backdrop-filter:blur(16px);
+  border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);gap:2px
+}
+.tab{
+  border:0;background:transparent;border-radius:10px;padding:8px 2px 7px;
+  min-height:52px;font-size:12px;color:#6e6e73
+}
+.tab.active{background:#111827;color:#fff}
+.grid{grid-template-columns:1fr;gap:10px}
+.card{border:0;border-radius:16px;padding:15px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+label{font-size:14px;margin-top:13px}
+input,select,textarea{font-size:16px;min-height:48px;border-radius:12px;padding:12px}
+textarea{min-height:68px}
+.flavor{padding:13px 0;font-size:17px}
+.step{gap:12px}
+.step button{width:48px;height:48px;border-radius:14px;font-size:25px;font-weight:600}
+.qty{width:34px;font-size:20px}
+.total{font-size:21px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn{min-height:48px;border-radius:12px;font-size:16px;font-weight:600;padding:11px 12px}
+#savePrint{grid-column:1/-1;font-size:17px;min-height:54px}
+.kpis{grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{border:0;border-radius:14px;padding:12px 8px;text-align:center}
+.kpi b{font-size:23px}
+table{min-width:650px}
+#data .actions{grid-template-columns:1fr}
+#data .btn{width:100%}
+.mobile-hint{
+  background:#eef6ff;border:1px solid #cfe4ff;border-radius:14px;
+  padding:12px 13px;margin-bottom:10px;font-size:13px;line-height:1.55;color:#234
+}
+@media (display-mode:standalone){
+  .sub{display:none}
+  .wrap{padding-top:calc(9px + env(safe-area-inset-top))}
+}
+@media(max-width:380px){
+  .wrap{padding-left:9px;padding-right:9px}.card{padding:13px}
+  .tab{font-size:11px}.kpi b{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>手工拌面订单系统</h1>
+  <div class="sub">接单 · 打印配送单 · 今日配送汇总 · 常用地址</div>
+
+  <div class="tabs">
+    <button class="tab active" data-page="order">接单</button>
+    <button class="tab" data-page="today">今日订单</button>
+    <button class="tab" data-page="summary">配送统计</button>
+    <button class="tab" data-page="customers">常用地址</button>
+    <button class="tab" data-page="data">数据管理</button>
+  </div>
+
+  <section id="order" class="page active">
+    <div class="mobile-hint">📱 手机版：订单保存在这台 iPhone 本机。回家后连接打印机，再到「今日订单」逐张打印。</div>
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin-top:0">客户信息</h3>
+        <label>地址</label><input id="address" list="addressList" placeholder="例如：百捷御府8栋2单元2507">
+        <datalist id="addressList"></datalist>
+        <label>电话（选填）</label><input id="phone" placeholder="可不填">
+        <label>配送区域</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="region" style="flex:1"></select>
+          <button type="button" class="btn secondary" id="manageRegions" style="white-space:nowrap">管理区域</button>
+        </div>
+        <label>配送时间</label>
+        <select id="delivery"><option>今晚</option><option>下午</option><option>明天</option><option>自提</option></select>
+        <label>备注</label><textarea id="note" placeholder="例如：放保安室"></textarea>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">口味数量</h3>
+        <div id="flavorBox"></div>
+        <div class="total"><span>本单合计</span><span><b id="orderTotal">0</b> 包</span></div>
+        <div id="editNotice" class="notice" style="display:none;font-weight:700;color:#7a4b00">正在修改订单：<span id="editingId"></span></div>
+        <div class="actions">
+          <button class="btn primary" id="savePrint">保存并打印</button>
+          <button class="btn secondary" id="saveOnly">保存订单</button>
+          <button class="btn secondary" id="cancelEdit" style="display:none">取消修改</button>
+          <button class="btn secondary" id="clearForm">清空</button>
+        </div>
+        <div class="notice" id="msg">订单会保存在本机浏览器中。</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="today" class="page">
+    <div class="kpis">
+      <div class="kpi"><span class="small">今日客户</span><b id="todayHouseholds">0</b></div>
+      <div class="kpi"><span class="small">今日总包数</span><b id="todayBags">0</b></div>
+      <div class="kpi"><span class="small">今日区域数</span><b id="todayRegions">0</b></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">今日订单</h3>
+      <div style="overflow:auto"><table><thead><tr><th>订单号</th><th>地址</th><th>电话</th><th>区域</th><th>数量</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="summary" class="page">
+    <div class="card">
+      <h3 style="margin-top:0">今日配送统计</h3>
+      <div id="deliverySummary"></div>
+    </div>
+  </section>
+
+  <section id="customers" class="page">
+    <div class="card">
+      <h3 style="margin-top:0">常用地址</h3>
+      <div class="small" style="margin-bottom:10px">同一地址再次下单时，输入地址会自动带出电话和配送区域。</div>
+      <div style="overflow:auto"><table><thead><tr><th>地址</th><th>电话</th><th>区域</th><th>累计订单</th></tr></thead><tbody id="customerTable"></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="data" class="page">
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin-top:0">配送区域管理</h3>
+        <p class="small">可以新增、修改、删除配送区域。已保存地址会记住对应区域。</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="newRegion" placeholder="例如：百捷片区">
+          <button class="btn primary" id="addRegion" type="button" style="white-space:nowrap">新增</button>
+        </div>
+        <div id="regionList" style="margin-top:12px"></div>
+        <div class="notice" id="regionMsg"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">安装到 iPhone 主屏幕</h3>
+        <p class="small">用 Safari 打开发布后的网址 → 点底部“分享” → “添加到主屏幕”。之后直接点“拌面订单”图标使用，体验接近 App。</p>
+        <div class="notice">首次打开需要网络；安装并缓存后，断网也可继续录单。订单数据仍保存在这台手机。</div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">数据备份</h3>
+        <p class="small">建议每天营业结束后备份一次。备份文件包含全部订单和客户资料。</p>
+        <div class="actions">
+          <button class="btn primary" id="exportData">导出备份文件</button>
+        </div>
+        <div class="notice" id="backupMsg"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">数据恢复</h3>
+        <p class="small">选择之前导出的 JSON 备份文件即可恢复。恢复会覆盖当前数据，请先确认。</p>
+        <input type="file" id="importFile" accept=".json,application/json">
+        <div class="actions">
+          <button class="btn secondary" id="importData">恢复备份</button>
+        </div>
+        <div class="notice" id="restoreMsg"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="receipt" class="receipt"></div>
+
+<script>
+const FLAVORS=["花生酱","葱油","香菇肉酱","番茄肉酱"];
+const qty=Object.fromEntries(FLAVORS.map(x=>[x,0]));
+let editingKey=null;
+const $=id=>document.getElementById(id);
+const todayKey=()=>new Date().toISOString().slice(0,10);
+const DEFAULT_REGIONS=["城东","晋江","洛江","其他"];
+const loadRegions=()=>{
+  const saved=JSON.parse(localStorage.getItem("noodleRegions")||"null");
+  if(Array.isArray(saved)&&saved.length)return saved;
+  localStorage.setItem("noodleRegions",JSON.stringify(DEFAULT_REGIONS));
+  return [...DEFAULT_REGIONS];
+};
+const saveRegions=x=>localStorage.setItem("noodleRegions",JSON.stringify(x));
+const loadOrders=()=>JSON.parse(localStorage.getItem("noodleOrders")||"[]");
+const saveOrders=x=>localStorage.setItem("noodleOrders",JSON.stringify(x));
+const loadCustomers=()=>JSON.parse(localStorage.getItem("noodleCustomers")||"{}");
+const saveCustomers=x=>localStorage.setItem("noodleCustomers",JSON.stringify(x));
+
+function renderRegionSelect(selected){
+  const regions=loadRegions();
+  const current=selected || $("region").value || regions[0] || "其他";
+  $("region").innerHTML=regions.map(r=>`<option value="${r}">${r}</option>`).join("");
+  if(regions.includes(current)) $("region").value=current;
+}
+function renderRegionList(){
+  const regions=loadRegions();
+  $("regionList").innerHTML=regions.length?regions.map((r,i)=>`
+    <div class="flavor">
+      <span>${r}</span>
+      <div class="row-actions">
+        <button class="btn secondary" type="button" data-region-edit="${i}">修改</button>
+        <button class="btn danger" type="button" data-region-del="${i}">删除</button>
+      </div>
+    </div>`).join(""):`<div class="small">暂无配送区域</div>`;
+
+  document.querySelectorAll("[data-region-edit]").forEach(btn=>{
+    btn.onclick=()=>{
+      const regs=loadRegions(), i=Number(btn.dataset.regionEdit);
+      const old=regs[i];
+      const next=prompt("修改配送区域名称：",old);
+      if(next===null)return;
+      const name=next.trim();
+      if(!name){$("regionMsg").textContent="区域名称不能为空。";return}
+      if(regs.some((x,idx)=>idx!==i&&x===name)){$("regionMsg").textContent="这个区域已经存在。";return}
+      regs[i]=name; saveRegions(regs);
+
+      // Update saved address profiles and existing orders using the old region
+      const cs=loadCustomers();
+      Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=name});
+      saveCustomers(cs);
+      const orders=loadOrders();
+      orders.forEach(o=>{if(o.region===old)o.region=name});
+      saveOrders(orders);
+
+      renderRegionSelect(name); renderRegionList(); renderAll();
+      $("regionMsg").textContent=`已将“${old}”改为“${name}”。`;
+    }
+  });
+
+  document.querySelectorAll("[data-region-del]").forEach(btn=>{
+    btn.onclick=()=>{
+      let regs=loadRegions(), i=Number(btn.dataset.regionDel), old=regs[i];
+      if(regs.length<=1){$("regionMsg").textContent="至少要保留一个配送区域。";return}
+      if(!confirm(`确定删除“${old}”吗？已保存订单不会删除，但对应地址之后需要重新选择区域。`))return;
+      regs.splice(i,1); saveRegions(regs);
+
+      const fallback=regs[0];
+      const cs=loadCustomers();
+      Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=fallback});
+      saveCustomers(cs);
+      renderRegionSelect(fallback); renderRegionList(); renderAll();
+      $("regionMsg").textContent=`已删除“${old}”，相关常用地址暂时改到“${fallback}”。`;
+    }
+  });
+}
+function addRegion(){
+  const name=$("newRegion").value.trim();
+  if(!name){$("regionMsg").textContent="请输入区域名称。";return}
+  const regs=loadRegions();
+  if(regs.includes(name)){$("regionMsg").textContent="这个区域已经存在。";return}
+  regs.push(name); saveRegions(regs);
+  $("newRegion").value="";
+  renderRegionSelect(name); renderRegionList();
+  $("regionMsg").textContent=`已新增“${name}”。`;
+}
+function renderFlavors(){
+  const box=$("flavorBox"); box.innerHTML="";
+  FLAVORS.forEach(name=>{
+    const r=document.createElement("div"); r.className="flavor";
+    r.innerHTML=`<span>${name}</span><div class="step"><button type="button" aria-label="${name}减一">−</button><span class="qty">${qty[name]}</span><button type="button" aria-label="${name}加一">+</button></div>`;
+    const bs=r.querySelectorAll("button");
+    bs[0].onclick=()=>{qty[name]=Math.max(0,qty[name]-1);renderFlavors()};
+    bs[1].onclick=()=>{qty[name]=Math.min(99,qty[name]+1);renderFlavors()};
+    box.appendChild(r);
+  });
+  $("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+qty[n],0);
+}
+function orderId(){
+  const d=new Date(), date=String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+  const count=loadOrders().filter(o=>o.date===todayKey()).length+1;
+  return date+"-"+String(count).padStart(3,"0");
+}
+function currentOrder(){
+  return {
+    id:orderId(),date:todayKey(),time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
+    phone:$("phone").value.trim(),address:$("address").value.trim(),
+    region:$("region").value,delivery:$("delivery").value,note:$("note").value.trim(),
+    items:{...qty},total:FLAVORS.reduce((s,n)=>s+qty[n],0)
+  }
+}
+function validate(o){
+  if(!o.address)return "请填写配送地址。";
+  if(o.total<1)return "至少选择1包。";
+  return "";
+}
+function rememberCustomer(o){
+  const cs=loadCustomers();
+  const old=cs[o.address]||{orders:0};
+  cs[o.address]={phone:o.phone,address:o.address,region:o.region,orders:(old.orders||0)+1};
+  saveCustomers(cs);
+}
+function saveOrder(doPrint){
+  const o=currentOrder(), err=validate(o);
+  if(err){$("msg").textContent=err;return}
+  let orders=loadOrders();
+  if(editingKey){
+    const idx=orders.findIndex(x=>x.date===editingKey.date && x.id===editingKey.id);
+    if(idx<0){$("msg").textContent="找不到要修改的订单。";return}
+    o.id=editingKey.id;
+    o.date=editingKey.date;
+    orders[idx]=o;
+    saveOrders(orders);
+    rebuildCustomerStats();
+    buildReceipt(o);
+    $("msg").textContent=`订单 ${o.id} 已修改并保存。`;
+    stopEditing(false);
+  }else{
+    orders.push(o); saveOrders(orders); rememberCustomer(o);
+    buildReceipt(o); $("msg").textContent=`订单 ${o.id} 已保存。`;
+  }
+  renderAll();
+  if(doPrint)window.print();
+}
+function rebuildCustomerStats(){
+  const orders=loadOrders(), cs={};
+  orders.forEach(o=>{
+    if(!o.address)return;
+    if(!cs[o.address]) cs[o.address]={phone:o.phone||"",address:o.address||"",region:o.region||"其他",orders:0};
+    cs[o.address].phone=o.phone||cs[o.address].phone;
+    cs[o.address].address=o.address||cs[o.address].address;
+    cs[o.address].region=o.region||cs[o.address].region;
+    cs[o.address].orders++;
+  });
+  saveCustomers(cs);
+}
+function startEditing(o){
+  editingKey={date:o.date,id:o.id};
+  $("phone").value=o.phone||"";
+  $("address").value=o.address||"";
+  $("region").value=o.region||"其他";
+  $("delivery").value=o.delivery||"今晚";
+  $("note").value=o.note||"";
+  FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);
+  renderFlavors();
+  $("editNotice").style.display="block";
+  $("editingId").textContent=o.id;
+  $("cancelEdit").style.display="inline-block";
+  document.querySelector('[data-page="order"]').click();
+  $("msg").textContent=`已载入订单 ${o.id}，修改后点“保存并打印”或“仅保存”。`;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function stopEditing(clear=true){
+  editingKey=null;
+  $("editNotice").style.display="none";
+  $("editingId").textContent="";
+  $("cancelEdit").style.display="none";
+  if(clear)clearForm();
+}
+function buildReceipt(o){
+  let itemHtml=FLAVORS.filter(n=>o.items[n]>0).map(n=>`<div class="rrow"><span>${n}</span><b>× ${o.items[n]}</b></div>`).join("");
+  $("receipt").innerHTML=`<h2>手工拌面 配送单</h2>
+  <div>${o.address}</div>${o.phone?`<div>${o.phone}</div>`:""}
+  <div class="line"></div>${itemHtml}<div class="line"></div>
+  <div class="rrow"><b>合计</b><b>${o.total} 包</b></div>
+  <div>区域：${o.region}</div><div>配送：${o.delivery}</div>${o.note?`<div>备注：${o.note}</div>`:""}
+  <div>订单号：${o.id}</div><div>时间：${o.time}</div>`;
+}
+function clearForm(){
+  editingKey=null;
+  $("editNotice").style.display="none";
+  $("editingId").textContent="";
+  $("cancelEdit").style.display="none";
+  ["phone","address","note"].forEach(id=>$(id).value="");
+  const regs=loadRegions(); $("region").value=regs[0]||""; $("delivery").value="今晚";
+  FLAVORS.forEach(n=>qty[n]=0); renderFlavors(); $("msg").textContent="已清空当前订单。";
+}
+function fillAddress(address){
+  const c=loadCustomers()[address]; if(!c)return;
+  $("phone").value=c.phone||"";
+  const regs=loadRegions();
+  if(regs.includes(c.region)) $("region").value=c.region;
+}
+function renderCustomers(){
+  const cs=loadCustomers(), addresses=Object.keys(cs);
+  $("addressList").innerHTML=addresses.map(a=>`<option value="${a}"></option>`).join("");
+  $("customerTable").innerHTML=addresses.length?addresses.sort().map(a=>{const c=cs[a];return `<tr><td>${a}</td><td>${c.phone||""}</td><td>${c.region||""}</td><td>${c.orders||0}</td></tr>`}).join(""):`<tr><td colspan="4" class="small">暂无地址资料</td></tr>`;
+}
+function renderToday(){
+  const orders=loadOrders().filter(o=>o.date===todayKey()).sort((a,b)=>a.region.localeCompare(b.region,"zh-CN"));
+  $("todayHouseholds").textContent=orders.length;$("todayBags").textContent=orders.reduce((s,o)=>s+o.total,0);
+  $("todayRegions").textContent=new Set(orders.map(o=>o.region)).size;
+  $("todayTable").innerHTML=orders.length?orders.map((o,i)=>`<tr><td>${o.id}</td><td>${o.address}</td><td>${o.phone||""}</td><td><span class="badge">${o.region}</span></td><td><b>${o.total}</b></td><td class="row-actions"><button class="btn secondary" data-edit="${o.id}">修改</button><button class="btn secondary" data-print="${o.id}">打印</button><button class="btn danger" data-del="${o.id}">删除</button></td></tr>`).join(""):`<tr><td colspan="6" class="small">今天还没有订单</td></tr>`;
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{const o=orders.find(x=>x.id===b.dataset.edit);if(o)startEditing(o)});
+  document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{const o=orders.find(x=>x.id===b.dataset.print);buildReceipt(o);window.print()});
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>!(x.date===todayKey()&&x.id===b.dataset.del));saveOrders(all);rebuildCustomerStats();renderAll()});
+}
+function renderSummary(){
+  const orders=loadOrders().filter(o=>o.date===todayKey());
+  const totals=Object.fromEntries(FLAVORS.map(n=>[n,0])); orders.forEach(o=>FLAVORS.forEach(n=>totals[n]+=o.items[n]||0));
+  const region={}; orders.forEach(o=>region[o.region]=(region[o.region]||0)+o.total);
+  $("deliverySummary").innerHTML=`
+  <div style="font-size:30px;font-weight:800;margin:8px 0 18px">今日共 ${orders.reduce((s,o)=>s+o.total,0)} 包</div>
+  ${FLAVORS.map(n=>`<div class="flavor"><span>${n}</span><b>${totals[n]} 包</b></div>`).join("")}
+  <h4 style="margin:22px 0 8px">按配送区域</h4>
+  ${Object.keys(region).length?Object.entries(region).map(([k,v])=>`<div class="flavor"><span>${k}</span><b>${v} 包</b></div>`).join(""):`<div class="small">暂无订单</div>`}`;
+}
+function exportBackup(){
+  const payload={
+    app:"手工拌面订单系统",
+    version:2,
+    exportedAt:new Date().toISOString(),
+    orders:loadOrders(),
+    customers:loadCustomers(),
+    regions:loadRegions()
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`拌面订单备份_${todayKey()}.json`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  $("backupMsg").textContent="备份文件已导出。建议保存到 iCloud Drive 或移动硬盘。";
+}
+function importBackup(){
+  const f=$("importFile").files[0];
+  if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.orders) || typeof data.customers!=="object") throw new Error("格式错误");
+      if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;
+      saveOrders(data.orders);saveCustomers(data.customers||{});
+      if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);
+      renderRegionSelect();clearForm();renderRegionList();renderAll();
+      $("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`;
+    }catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}
+  };
+  reader.readAsText(f,"utf-8");
+}
+function renderAll(){renderToday();renderSummary();renderCustomers()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.page).classList.add("active")});
+$("address").addEventListener("input",e=>fillAddress(e.target.value.trim()));
+$("address").addEventListener("change",e=>fillAddress(e.target.value.trim()));
+$("address").addEventListener("blur",e=>fillAddress(e.target.value.trim()));
+$("savePrint").onclick=()=>saveOrder(true);$("saveOnly").onclick=()=>saveOrder(false);$("clearForm").onclick=clearForm;
+$("cancelEdit").onclick=()=>stopEditing(true);
+$("exportData").onclick=exportBackup;
+$("importData").onclick=importBackup;
+$("addRegion").onclick=addRegion;
+$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus();};
+renderRegionSelect();
+renderRegionList();
+renderFlavors();renderAll();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
