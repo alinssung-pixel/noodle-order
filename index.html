@@ -238,6 +238,29 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   }
 }
 
+
+/* 本次反馈优化：今日订单数量在上、口味在下 */
+@media(max-width:760px){
+  .wide-today{min-width:760px!important}
+  .wide-today th:nth-child(1),.wide-today td:nth-child(1){min-width:90px!important;white-space:nowrap}
+  .wide-today th:nth-child(2),.wide-today td:nth-child(2){min-width:210px!important}
+  .wide-today th:nth-child(3),.wide-today td:nth-child(3){min-width:72px!important;white-space:nowrap}
+  .wide-today th:nth-child(4),.wide-today td:nth-child(4){min-width:220px!important}
+  .wide-today th:nth-child(5),.wide-today td:nth-child(5){min-width:120px!important}
+  .wide-today th:nth-child(6),.wide-today td:nth-child(6){min-width:150px!important;white-space:nowrap}
+  .qty-flavor-cell .qty-top{display:block;font-size:18px;line-height:1.2;margin-bottom:5px}
+  .qty-flavor-cell .flavor-bottom{font-size:14px;line-height:1.45;color:#444}
+
+  /* 常用地址：缩短地址与区域之间的视觉距离 */
+  .wide-customers{min-width:660px!important}
+  .wide-customers th:nth-child(1),.wide-customers td:nth-child(1){min-width:175px!important}
+  .wide-customers th:nth-child(2),.wide-customers td:nth-child(2){min-width:118px!important}
+  .wide-customers th:nth-child(3),.wide-customers td:nth-child(3){min-width:68px!important}
+  .wide-customers th:nth-child(4),.wide-customers td:nth-child(4){min-width:78px!important}
+  .wide-customers th:nth-child(5),.wide-customers td:nth-child(5){min-width:155px!important}
+  .wide-customers th:nth-child(6),.wide-customers td:nth-child(6){min-width:95px!important}
+}
+
 </style>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -309,7 +332,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
     </div>
     <div class="card">
       <h3 style="margin-top:0">今日订单</h3>
-      <div class="hscroll today-scroll"><table class="wide-today"><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>口味</th><th>数量</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
+      <div class="hscroll today-scroll"><table class="wide-today"><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>数量 / 口味</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
     </div>
   </section>
 
@@ -467,11 +490,10 @@ function renderToday(){
  <td class="nowrap">${esc(o.id)}</td>
  <td><b>${esc(o.address)}</b>${o.phone?`<div class="small" style="margin-top:4px">${esc(o.phone)}</div>`:""}</td>
  <td><span class="badge">${esc(o.region||"")}</span></td>
- <td>${esc(itemsText(o))}</td>
- <td><b>${o.total||0}</b></td>
+ <td class="qty-flavor-cell"><b class="qty-top">${o.total||0} 包</b><div class="flavor-bottom">${esc(itemsText(o))}</div></td>
  <td>${o.note?esc(o.note):'<span class="small">—</span>'}</td>
  <td><div class="row-actions"><button class="btn secondary" data-edit-date="${esc(o.date)}" data-edit-id="${esc(o.id)}">修改</button><button class="btn danger" data-del-date="${esc(o.date)}" data-del-id="${esc(o.id)}">删除</button></div></td>
- </tr>`).join(""):`<tr><td colspan="7" class="small">今天还没有订单</td></tr>`;
+ </tr>`).join(""):`<tr><td colspan="6" class="small">今天还没有订单</td></tr>`;
  bindOrderActions();
 }
 function bindOrderActions(){document.querySelectorAll("[data-edit-id]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.editDate&&x.id===b.dataset.editId);if(o)startEditing(o)});document.querySelectorAll("[data-print-id]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.printDate&&x.id===b.dataset.printId);if(o){buildReceipt(o);window.print()}});document.querySelectorAll("[data-del-id]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>!(x.date===b.dataset.delDate&&x.id===b.dataset.delId));saveOrders(all);rebuildCustomerStats();renderAll()});document.querySelectorAll("[data-repeat-date]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.repeatDate&&x.id===b.dataset.repeatId);if(o)repeatOrder(o)})}
