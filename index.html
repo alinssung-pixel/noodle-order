@@ -158,6 +158,86 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   }
 }
 
+
+/* 今日订单列表：横向滑动，避免内容被挤成竖排 */
+@media(max-width:760px){
+  .today-scroll{
+    width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    border-radius:12px;
+  }
+  .wide-today{
+    width:max-content!important;
+    min-width:860px!important;
+    table-layout:auto!important;
+  }
+  .wide-today th{white-space:nowrap}
+  .wide-today th:nth-child(1),.wide-today td:nth-child(1){min-width:95px;white-space:nowrap}
+  .wide-today th:nth-child(2),.wide-today td:nth-child(2){min-width:230px}
+  .wide-today th:nth-child(3),.wide-today td:nth-child(3){min-width:85px;white-space:nowrap}
+  .wide-today th:nth-child(4),.wide-today td:nth-child(4){min-width:210px}
+  .wide-today th:nth-child(5),.wide-today td:nth-child(5){min-width:70px;text-align:center;white-space:nowrap}
+  .wide-today th:nth-child(6),.wide-today td:nth-child(6){min-width:140px}
+  .wide-today th:nth-child(7),.wide-today td:nth-child(7){min-width:170px;white-space:nowrap}
+  .wide-today .row-actions{display:flex;gap:8px;flex-wrap:nowrap}
+  .wide-today .row-actions .btn{min-height:44px;padding:8px 14px;font-size:15px}
+}
+
+
+/* 今日订单顶部汇总：压缩为一张小卡，减少占屏 */
+@media(max-width:760px){
+  #today .today-compact-summary{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px 12px;
+    margin-bottom:10px;
+  }
+  #today .today-main-summary{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    font-size:15px;
+    margin-bottom:8px;
+  }
+  #today .today-main-summary span{
+    white-space:nowrap;
+    color:#555;
+  }
+  #today .today-main-summary b{
+    font-size:22px;
+    color:#111;
+    margin-right:2px;
+  }
+  #today .today-flavors-compact{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:6px;
+  }
+  #today .flavor-chip{
+    background:#f7f7f8;
+    border-radius:10px;
+    padding:7px 5px;
+    text-align:center;
+    line-height:1.15;
+  }
+  #today .flavor-chip span{
+    display:block;
+    font-size:12px;
+    color:#666;
+    white-space:nowrap;
+  }
+  #today .flavor-chip b{
+    display:block;
+    font-size:19px;
+    margin-top:3px;
+    color:#111;
+  }
+}
+
 </style>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -219,15 +299,17 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   </section>
 
   <section id="today" class="page">
-    <div class="kpis">
-      <div class="kpi"><span class="small">今日订单</span><b id="todayHouseholds">0</b></div>
-      <div class="kpi"><span class="small">今日总包数</span><b id="todayBags">0</b></div>
-      <div class="kpi"><span class="small">今日区域数</span><b id="todayRegions">0</b></div>
+    <div class="today-compact-summary">
+      <div class="today-main-summary">
+        <span>今日 <b id="todayHouseholds">0</b> 单</span>
+        <span><b id="todayBags">0</b> 包</span>
+        <span><b id="todayRegions">0</b> 区域</span>
+      </div>
+      <div id="todayFlavorCards" class="today-flavors-compact"></div>
     </div>
-    <div id="todayFlavorCards" class="today-flavors"></div>
     <div class="card">
       <h3 style="margin-top:0">今日订单</h3>
-      <div style="overflow:auto"><table><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>口味</th><th>数量</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
+      <div class="hscroll today-scroll"><table class="wide-today"><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>口味</th><th>数量</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
     </div>
   </section>
 
@@ -380,7 +462,7 @@ function renderToday(){
  $("todayRegions").textContent=new Set(orders.map(o=>o.region)).size;
  const totals=Object.fromEntries(FLAVORS.map(n=>[n,0]));
  orders.forEach(o=>FLAVORS.forEach(n=>totals[n]+=o.items?.[n]||0));
- $("todayFlavorCards").innerHTML=FLAVORS.map(n=>`<div class="mini"><span class="small">${n}</span><div><b>${totals[n]}</b> 包</div></div>`).join("");
+ $("todayFlavorCards").innerHTML=FLAVORS.map(n=>`<div class="flavor-chip"><span>${n}</span><b>${totals[n]}</b></div>`).join("");
  $("todayTable").innerHTML=orders.length?orders.map(o=>`<tr>
  <td class="nowrap">${esc(o.id)}</td>
  <td><b>${esc(o.address)}</b>${o.phone?`<div class="small" style="margin-top:4px">${esc(o.phone)}</div>`:""}</td>
