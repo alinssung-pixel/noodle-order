@@ -239,15 +239,18 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 }
 
 
-/* 本次反馈优化：今日订单数量在上、口味在下 */
+/* 今日订单：数量在上、口味在下；六列整体收紧，减少横向空白 */
 @media(max-width:760px){
-  .wide-today{min-width:760px!important}
-  .wide-today th:nth-child(1),.wide-today td:nth-child(1){min-width:90px!important;white-space:nowrap}
-  .wide-today th:nth-child(2),.wide-today td:nth-child(2){min-width:210px!important}
-  .wide-today th:nth-child(3),.wide-today td:nth-child(3){min-width:72px!important;white-space:nowrap}
-  .wide-today th:nth-child(4),.wide-today td:nth-child(4){min-width:220px!important}
-  .wide-today th:nth-child(5),.wide-today td:nth-child(5){min-width:120px!important}
-  .wide-today th:nth-child(6),.wide-today td:nth-child(6){min-width:150px!important;white-space:nowrap}
+  .wide-today{min-width:680px!important}
+  .wide-today th,.wide-today td{padding-left:5px!important;padding-right:5px!important}
+  .wide-today th:nth-child(1),.wide-today td:nth-child(1){min-width:76px!important;white-space:nowrap}
+  .wide-today th:nth-child(2),.wide-today td:nth-child(2){min-width:170px!important}
+  .wide-today th:nth-child(3),.wide-today td:nth-child(3){min-width:58px!important;white-space:nowrap}
+  .wide-today th:nth-child(4),.wide-today td:nth-child(4){min-width:145px!important}
+  .wide-today th:nth-child(5),.wide-today td:nth-child(5){min-width:82px!important}
+  .wide-today th:nth-child(6),.wide-today td:nth-child(6){min-width:118px!important;white-space:nowrap}
+  .wide-today .row-actions{gap:5px!important}
+  .wide-today .row-actions .btn{min-height:40px!important;padding:7px 10px!important;font-size:14px!important}
   .qty-flavor-cell .qty-top{display:block;font-size:18px;line-height:1.2;margin-bottom:5px}
   .qty-flavor-cell .flavor-bottom{font-size:14px;line-height:1.45;color:#444}
 
