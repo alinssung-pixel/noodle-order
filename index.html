@@ -3,119 +3,114 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#111827">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="拌面订单">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon.svg">
-<title>拌面订单</title>
+<title>手工拌面订单</title>
 <style>
-:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#111827}
+:root{--bg:#f5f5f7;--card:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:#d2d2d7;--accent:#111827;--warn:#8a5700;--ok:#176b3a}
 *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text)}
-.wrap{max-width:1100px;margin:0 auto;padding:24px}
+.wrap{max-width:1180px;margin:0 auto;padding:24px}
 h1{font-size:28px;margin:0 0 6px}.sub{color:var(--muted);margin-bottom:18px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:15px}.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
 label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px}input,select,textarea{width:100%;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff}
 textarea{min-height:76px;resize:vertical}.flavor{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee}.flavor:last-child{border-bottom:0}.step{display:flex;align-items:center;gap:10px}.step button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:22px;cursor:pointer}.qty{width:34px;text-align:center;font-weight:700}
-.total{display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:14px}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:10px;padding:12px 16px;font-size:15px;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:#fff;border:1px solid var(--line)}.danger{background:#fff;border:1px solid #f0a0a0;color:#a00}
+.total{display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:10px;padding:11px 14px;font-size:14px;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:#fff;border:1px solid var(--line)}.danger{background:#fff;border:1px solid #f0a0a0;color:#a00}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.kpi b{font-size:28px;display:block;margin-top:6px}
-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{padding:11px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}th{background:#fafafa}
-.small{font-size:13px;color:var(--muted)}.row-actions button{margin-right:6px}
-.receipt{display:none}
-.notice{margin-top:12px;color:var(--muted);font-size:14px}
-.badge{display:inline-block;background:#eee;border-radius:999px;padding:3px 8px;font-size:12px}
-@media(max-width:760px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kpi:last-child{grid-column:1/-1}h1{font-size:24px}}
-@media print{
- body *{visibility:hidden}
- #receipt,#receipt *{visibility:visible}
- #receipt{display:block;position:absolute;left:0;top:0;width:80mm;padding:4mm;background:#fff;color:#000;font-size:13px}
- #receipt h2{text-align:center;font-size:18px;margin:0 0 8px}
- #receipt .line{border-top:1px dashed #000;margin:7px 0}
- #receipt .rrow{display:flex;justify-content:space-between;margin:4px 0}
- @page{size:80mm auto;margin:0}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{padding:11px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:middle}th{background:#fafafa}.small{font-size:13px;color:var(--muted)}.row-actions{display:flex;gap:6px;flex-wrap:wrap}.row-actions button{margin:0}.receipt{display:none}.notice{margin-top:12px;color:var(--muted);font-size:14px}.warning{color:var(--warn);font-weight:700}.success{color:var(--ok);font-weight:700}.badge{display:inline-block;background:#eee;border-radius:999px;padding:3px 8px;font-size:12px}.status-select{font-size:13px;padding:7px 8px;min-width:92px}.toolbar{display:grid;grid-template-columns:180px 1fr;gap:10px;margin-bottom:14px}.delivery-region{margin:0 0 16px}.delivery-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:8px;border-bottom:1px solid #eee}.delivery-order{padding:12px 0;border-bottom:1px dashed #ddd}.delivery-order:last-child{border-bottom:0}.delivery-address{font-weight:700;font-size:16px}.items-inline{margin-top:5px;font-size:14px}.last-order{display:none;margin-top:12px;padding:12px;border:1px solid #e2d4b2;background:#fffaf0;border-radius:12px}.today-flavors{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.mini{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}.mini b{font-size:20px}.nowrap{white-space:nowrap}
+@media(max-width:760px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.kpi:last-child{grid-column:1/-1}h1{font-size:24px}.today-flavors{grid-template-columns:1fr 1fr}.toolbar{grid-template-columns:1fr}.tabs{gap:6px}.tab{padding:9px 10px;font-size:14px}th,td{font-size:13px;padding:9px 7px}}
+@media print{body *{visibility:hidden}#receipt,#receipt *{visibility:visible}#receipt{display:block;position:absolute;left:0;top:0;width:80mm;padding:4mm;background:#fff;color:#000;font-size:13px}#receipt h2{text-align:center;font-size:18px;margin:0 0 8px}#receipt .line{border-top:1px dashed #000;margin:7px 0}#receipt .rrow{display:flex;justify-content:space-between;margin:4px 0}@page{size:80mm auto;margin:0}}
+
+
+
+
+.input-clear-wrap{position:relative}
+.input-clear-wrap input{padding-right:52px}
+.input-clear-btn{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:36px;height:36px;border:0;background:transparent;color:#777;
+  font-size:30px;line-height:32px;padding:0;border-radius:50%;display:none;
+}
+.input-clear-btn.show{display:block}
+.input-clear-btn:active{background:#eee}
+#saveOnly.save-feedback{
+  background:#111827!important;color:#fff!important;border-color:#111827!important;
 }
 
-/* ===== iPhone / PWA mobile-first overrides ===== */
-html{-webkit-text-size-adjust:100%;touch-action:manipulation}
-body{padding-bottom:calc(84px + env(safe-area-inset-bottom));overscroll-behavior-y:none}
-.wrap{max-width:680px;padding:12px 12px 20px}
-h1{font-size:21px;margin:2px 0 2px}
-.sub{font-size:12px;margin-bottom:10px}
-.tabs{
-  position:fixed;z-index:1000;left:0;right:0;bottom:0;
-  margin:0;padding:7px 5px calc(7px + env(safe-area-inset-bottom));
-  background:rgba(255,255,255,.96);backdrop-filter:blur(16px);
-  border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);gap:2px
+
+@media(max-width:760px){
+  body{padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+  .wrap{padding:14px 12px 20px}
+  .tabs{
+    position:fixed;left:0;right:0;bottom:0;z-index:9999;
+    display:grid;grid-template-columns:repeat(5,1fr);gap:0;
+    margin:0;padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.97);
+    border-top:1px solid var(--line);
+    box-shadow:0 -4px 18px rgba(0,0,0,.06);
+    backdrop-filter:saturate(180%) blur(18px);
+    -webkit-backdrop-filter:saturate(180%) blur(18px);
+  }
+  .tab{
+    min-width:0;min-height:64px;border:0;background:transparent;
+    padding:8px 3px;border-radius:14px;
+    font-size:17px;font-weight:650;line-height:1.15;
+    color:#666;white-space:nowrap;
+  }
+  .tab.active{background:var(--accent);color:#fff;border:0}
+  h1{font-size:25px}
+  h3{font-size:20px}
+  label{font-size:17px;font-weight:650}
+  input,select,textarea{font-size:17px;min-height:52px}
+  .btn{font-size:17px;min-height:50px;padding:11px 16px}
+  .small{font-size:14px}
+  th,td{font-size:14px;padding:10px 7px}
+  .input-clear-btn{width:44px;height:44px;font-size:32px;right:6px}
 }
-.tab{
-  border:0;background:transparent;border-radius:10px;padding:8px 2px 7px;
-  min-height:52px;font-size:12px;color:#6e6e73
+@media(min-width:761px){
+  .tabs{position:static}
 }
-.tab.active{background:#111827;color:#fff}
-.grid{grid-template-columns:1fr;gap:10px}
-.card{border:0;border-radius:16px;padding:15px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
-label{font-size:14px;margin-top:13px}
-input,select,textarea{font-size:16px;min-height:48px;border-radius:12px;padding:12px}
-textarea{min-height:68px}
-.flavor{padding:13px 0;font-size:17px}
-.step{gap:12px}
-.step button{width:48px;height:48px;border-radius:14px;font-size:25px;font-weight:600}
-.qty{width:34px;font-size:20px}
-.total{font-size:21px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.btn{min-height:48px;border-radius:12px;font-size:16px;font-weight:600;padding:11px 12px}
-#savePrint{grid-column:1/-1;font-size:17px;min-height:54px}
-.kpis{grid-template-columns:repeat(3,1fr);gap:8px}
-.kpi{border:0;border-radius:14px;padding:12px 8px;text-align:center}
-.kpi b{font-size:23px}
-table{min-width:650px}
-#data .actions{grid-template-columns:1fr}
-#data .btn{width:100%}
-.mobile-hint{
-  background:#eef6ff;border:1px solid #cfe4ff;border-radius:14px;
-  padding:12px 13px;margin-bottom:10px;font-size:13px;line-height:1.55;color:#234
-}
-@media (display-mode:standalone){
-  .sub{display:none}
-  .wrap{padding-top:calc(9px + env(safe-area-inset-top))}
-}
-@media(max-width:380px){
-  .wrap{padding-left:9px;padding-right:9px}.card{padding:13px}
-  .tab{font-size:11px}.kpi b{font-size:21px}
-}
+
 </style>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="拌面订单">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 </head>
 <body>
 <div class="wrap">
   <h1>手工拌面订单系统</h1>
-  <div class="sub">接单 · 打印配送单 · 今日配送汇总 · 常用地址</div>
+  <div class="sub">接单 · 今日订单 · 配送清单 · 历史查询 · 常用地址</div>
 
   <div class="tabs">
     <button class="tab active" data-page="order">接单</button>
     <button class="tab" data-page="today">今日订单</button>
-    <button class="tab" data-page="summary">配送统计</button>
+    <button class="tab" data-page="history">历史订单</button>
     <button class="tab" data-page="customers">常用地址</button>
     <button class="tab" data-page="data">数据管理</button>
   </div>
 
   <section id="order" class="page active">
-    <div class="mobile-hint">📱 手机版：订单保存在这台 iPhone 本机。回家后连接打印机，再到「今日订单」逐张打印。</div>
     <div class="grid">
       <div class="card">
         <h3 style="margin-top:0">客户信息</h3>
-        <label>地址</label><input id="address" list="addressList" placeholder="例如：百捷御府8栋2单元2507">
+        <label>地址</label>
+        <div class="input-clear-wrap">
+          <input id="address" list="addressList" placeholder="例如：百捷御府8栋2单元2507" autocomplete="off">
+          <button type="button" id="clearAddress" class="input-clear-btn" aria-label="清空地址">×</button>
+        </div>
         <datalist id="addressList"></datalist>
-        <label>电话（选填）</label><input id="phone" placeholder="可不填">
+        <div id="lastOrderBox" class="last-order">
+          <div><b>这个地址上次买过：</b><span id="lastOrderText"></span></div>
+          <button class="btn secondary" id="copyLastOrder" type="button" style="margin-top:9px">按上次订单填写</button>
+        </div>
+        <label>电话（选填）</label><input id="phone" placeholder="可不填" inputmode="tel">
         <label>配送区域</label>
         <div style="display:flex;gap:8px;align-items:center">
           <select id="region" style="flex:1"></select>
           <button type="button" class="btn secondary" id="manageRegions" style="white-space:nowrap">管理区域</button>
         </div>
-        <label>配送时间</label>
-        <select id="delivery"><option>今晚</option><option>下午</option><option>明天</option><option>自提</option></select>
         <label>备注</label><textarea id="note" placeholder="例如：放保安室"></textarea>
       </div>
       <div class="card">
@@ -125,44 +120,57 @@ table{min-width:650px}
         <div id="editNotice" class="notice" style="display:none;font-weight:700;color:#7a4b00">正在修改订单：<span id="editingId"></span></div>
         <div class="actions">
           <button class="btn primary" id="savePrint">保存并打印</button>
-          <button class="btn secondary" id="saveOnly">保存订单</button>
+          <button class="btn secondary" id="saveOnly">仅保存</button>
           <button class="btn secondary" id="cancelEdit" style="display:none">取消修改</button>
           <button class="btn secondary" id="clearForm">清空</button>
         </div>
-        <div class="notice" id="msg">订单会保存在本机浏览器中。</div>
+        <div class="notice" id="msg">填写完成后保存订单。</div>
       </div>
     </div>
   </section>
 
   <section id="today" class="page">
     <div class="kpis">
-      <div class="kpi"><span class="small">今日客户</span><b id="todayHouseholds">0</b></div>
+      <div class="kpi"><span class="small">今日订单</span><b id="todayHouseholds">0</b></div>
       <div class="kpi"><span class="small">今日总包数</span><b id="todayBags">0</b></div>
       <div class="kpi"><span class="small">今日区域数</span><b id="todayRegions">0</b></div>
     </div>
+    <div id="todayFlavorCards" class="today-flavors"></div>
     <div class="card">
       <h3 style="margin-top:0">今日订单</h3>
-      <div style="overflow:auto"><table><thead><tr><th>订单号</th><th>地址</th><th>电话</th><th>区域</th><th>数量</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
+      <div style="overflow:auto"><table><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>口味</th><th>数量</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
     </div>
   </section>
 
-  <section id="summary" class="page">
+  <section id="history" class="page">
     <div class="card">
-      <h3 style="margin-top:0">今日配送统计</h3>
-      <div id="deliverySummary"></div>
+      <h3 style="margin-top:0">历史订单查询</h3>
+      <div class="toolbar">
+        <input type="date" id="historyDate">
+        <input id="historySearch" placeholder="搜索地址、电话或区域">
+      </div>
+      <div id="historyCount" class="small" style="margin-bottom:10px"></div>
+      <div style="overflow:auto"><table><thead><tr><th>日期</th><th>订单号</th><th>地址</th><th>区域</th><th>明细</th><th>操作</th></tr></thead><tbody id="historyTable"></tbody></table></div>
     </div>
   </section>
 
   <section id="customers" class="page">
     <div class="card">
       <h3 style="margin-top:0">常用地址</h3>
-      <div class="small" style="margin-bottom:10px">同一地址再次下单时，输入地址会自动带出电话和配送区域。</div>
-      <div style="overflow:auto"><table><thead><tr><th>地址</th><th>电话</th><th>区域</th><th>累计订单</th></tr></thead><tbody id="customerTable"></tbody></table></div>
+      <div class="small" style="margin-bottom:10px">输入曾经购买过的完整地址，会自动带出电话、区域和上次订单。</div>
+      <input id="customerSearch" placeholder="搜索常用地址" style="margin-bottom:12px">
+      <div style="overflow:auto"><table><thead><tr><th>地址</th><th>电话</th><th>区域</th><th>累计订单</th><th>上次购买</th><th>操作</th></tr></thead><tbody id="customerTable"></tbody></table></div>
     </div>
   </section>
 
   <section id="data" class="page">
     <div class="grid">
+      <div class="card">
+        <h3 style="margin-top:0">导出今日订单到电脑</h3>
+        <p class="small">导出今天的订单文件，可通过微信文件传输助手发送到旧电脑打单，也可发送到 Mac 销售管理系统导入。</p>
+        <div class="actions"><button class="btn primary" id="exportToday" type="button">导出今日订单</button></div>
+        <div class="notice" id="transferMsg"></div>
+      </div>
       <div class="card">
         <h3 style="margin-top:0">配送区域管理</h3>
         <p class="small">可以新增、修改、删除配送区域。已保存地址会记住对应区域。</p>
@@ -174,314 +182,232 @@ table{min-width:650px}
         <div class="notice" id="regionMsg"></div>
       </div>
       <div class="card">
-        <h3 style="margin-top:0">安装到 iPhone 主屏幕</h3>
-        <p class="small">用 Safari 打开发布后的网址 → 点底部“分享” → “添加到主屏幕”。之后直接点“拌面订单”图标使用，体验接近 App。</p>
-        <div class="notice">首次打开需要网络；安装并缓存后，断网也可继续录单。订单数据仍保存在这台手机。</div>
-      </div>
-      <div class="card">
         <h3 style="margin-top:0">数据备份</h3>
-        <p class="small">建议每天营业结束后备份一次。备份文件包含全部订单和客户资料。</p>
-        <div class="actions">
-          <button class="btn primary" id="exportData">导出备份文件</button>
-        </div>
+        <p class="small">这是手机端完整数据备份，用于数据保险和恢复。包含全部订单、常用地址和配送区域；日常传旧电脑或 Mac 请使用“导出今日订单”。</p>
+        <div id="backupStatus" class="notice"></div>
+        <div class="actions"><button class="btn primary" id="exportData">导出备份文件</button></div>
         <div class="notice" id="backupMsg"></div>
       </div>
       <div class="card">
         <h3 style="margin-top:0">数据恢复</h3>
-        <p class="small">选择之前导出的 JSON 备份文件即可恢复。恢复会覆盖当前数据，请先确认。</p>
+        <p class="small">仅用于恢复本手机此前导出的“完整备份”。恢复会覆盖当前手机数据，请先确认。</p>
         <input type="file" id="importFile" accept=".json,application/json">
-        <div class="actions">
-          <button class="btn secondary" id="importData">恢复备份</button>
-        </div>
+        <div class="actions"><button class="btn secondary" id="importData">恢复备份</button></div>
         <div class="notice" id="restoreMsg"></div>
       </div>
     </div>
   </section>
-
 </div>
-
 <div id="receipt" class="receipt"></div>
 
 <script>
 const FLAVORS=["花生酱","葱油","香菇肉酱","番茄肉酱"];
+const STATUSES=["待制作","待配送","已完成"];
 const qty=Object.fromEntries(FLAVORS.map(x=>[x,0]));
-let editingKey=null;
+let editingKey=null,lastOrderForAddress=null;
 const $=id=>document.getElementById(id);
-const todayKey=()=>new Date().toISOString().slice(0,10);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const localDateKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const todayKey=()=>localDateKey();
 const DEFAULT_REGIONS=["城东","晋江","洛江","其他"];
-const loadRegions=()=>{
-  const saved=JSON.parse(localStorage.getItem("noodleRegions")||"null");
-  if(Array.isArray(saved)&&saved.length)return saved;
-  localStorage.setItem("noodleRegions",JSON.stringify(DEFAULT_REGIONS));
-  return [...DEFAULT_REGIONS];
-};
+const safeParse=(key,fallback)=>{try{const v=JSON.parse(localStorage.getItem(key)||"null");return v??fallback}catch{return fallback}};
+const loadRegions=()=>{const saved=safeParse("noodleRegions",null);if(Array.isArray(saved)&&saved.length)return saved;localStorage.setItem("noodleRegions",JSON.stringify(DEFAULT_REGIONS));return [...DEFAULT_REGIONS]};
 const saveRegions=x=>localStorage.setItem("noodleRegions",JSON.stringify(x));
-const loadOrders=()=>JSON.parse(localStorage.getItem("noodleOrders")||"[]");
+const loadOrders=()=>{const v=safeParse("noodleOrders",[]);return Array.isArray(v)?v:[]};
 const saveOrders=x=>localStorage.setItem("noodleOrders",JSON.stringify(x));
-const loadCustomers=()=>JSON.parse(localStorage.getItem("noodleCustomers")||"{}");
+const loadCustomers=()=>{const v=safeParse("noodleCustomers",{});return v&&typeof v==="object"&&!Array.isArray(v)?v:{}};
 const saveCustomers=x=>localStorage.setItem("noodleCustomers",JSON.stringify(x));
+const orderStatus=o=>STATUSES.includes(o.status)?o.status:"待制作";
+const itemsText=o=>FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`${n}×${o.items[n]}`).join("、")||"无";
 
-function renderRegionSelect(selected){
-  const regions=loadRegions();
-  const current=selected || $("region").value || regions[0] || "其他";
-  $("region").innerHTML=regions.map(r=>`<option value="${r}">${r}</option>`).join("");
-  if(regions.includes(current)) $("region").value=current;
-}
-function renderRegionList(){
-  const regions=loadRegions();
-  $("regionList").innerHTML=regions.length?regions.map((r,i)=>`
-    <div class="flavor">
-      <span>${r}</span>
-      <div class="row-actions">
-        <button class="btn secondary" type="button" data-region-edit="${i}">修改</button>
-        <button class="btn danger" type="button" data-region-del="${i}">删除</button>
-      </div>
-    </div>`).join(""):`<div class="small">暂无配送区域</div>`;
+function renderRegionSelect(selected){const regions=loadRegions();const current=selected||$("region").value||regions[0]||"其他";$("region").innerHTML=regions.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");if(regions.includes(current))$("region").value=current}
+function renderRegionList(){const regions=loadRegions();$("regionList").innerHTML=regions.length?regions.map((r,i)=>`<div class="flavor"><span>${esc(r)}</span><div class="row-actions"><button class="btn secondary" type="button" data-region-edit="${i}">修改</button><button class="btn danger" type="button" data-region-del="${i}">删除</button></div></div>`).join(""):`<div class="small">暂无配送区域</div>`;
+ document.querySelectorAll("[data-region-edit]").forEach(btn=>btn.onclick=()=>{const regs=loadRegions(),i=Number(btn.dataset.regionEdit),old=regs[i],next=prompt("修改配送区域名称：",old);if(next===null)return;const name=next.trim();if(!name){$("regionMsg").textContent="区域名称不能为空。";return}if(regs.some((x,idx)=>idx!==i&&x===name)){$("regionMsg").textContent="这个区域已经存在。";return}regs[i]=name;saveRegions(regs);const cs=loadCustomers();Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=name});saveCustomers(cs);const orders=loadOrders();orders.forEach(o=>{if(o.region===old)o.region=name});saveOrders(orders);renderRegionSelect(name);renderRegionList();renderAll();$("regionMsg").textContent=`已将“${old}”改为“${name}”。`});
+ document.querySelectorAll("[data-region-del]").forEach(btn=>btn.onclick=()=>{let regs=loadRegions(),i=Number(btn.dataset.regionDel),old=regs[i];if(regs.length<=1){$("regionMsg").textContent="至少要保留一个配送区域。";return}if(!confirm(`确定删除“${old}”吗？`))return;regs.splice(i,1);saveRegions(regs);const fallback=regs[0];const cs=loadCustomers();Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=fallback});saveCustomers(cs);renderRegionSelect(fallback);renderRegionList();renderAll();$("regionMsg").textContent=`已删除“${old}”，相关常用地址暂时改到“${fallback}”。`})}
+function addRegion(){const name=$("newRegion").value.trim();if(!name){$("regionMsg").textContent="请输入区域名称。";return}const regs=loadRegions();if(regs.includes(name)){$("regionMsg").textContent="这个区域已经存在。";return}regs.push(name);saveRegions(regs);$("newRegion").value="";renderRegionSelect(name);renderRegionList();$("regionMsg").textContent=`已新增“${name}”。`}
 
-  document.querySelectorAll("[data-region-edit]").forEach(btn=>{
-    btn.onclick=()=>{
-      const regs=loadRegions(), i=Number(btn.dataset.regionEdit);
-      const old=regs[i];
-      const next=prompt("修改配送区域名称：",old);
-      if(next===null)return;
-      const name=next.trim();
-      if(!name){$("regionMsg").textContent="区域名称不能为空。";return}
-      if(regs.some((x,idx)=>idx!==i&&x===name)){$("regionMsg").textContent="这个区域已经存在。";return}
-      regs[i]=name; saveRegions(regs);
+function renderFlavors(){const box=$("flavorBox");box.innerHTML="";FLAVORS.forEach(name=>{const r=document.createElement("div");r.className="flavor";r.innerHTML=`<span>${name}</span><div class="step"><button type="button">−</button><span class="qty">${qty[name]}</span><button type="button">+</button></div>`;const bs=r.querySelectorAll("button");bs[0].onclick=()=>{qty[name]=Math.max(0,qty[name]-1);renderFlavors()};bs[1].onclick=()=>{qty[name]=Math.min(99,qty[name]+1);renderFlavors()};box.appendChild(r)});$("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+qty[n],0)}
+function orderId(){const d=new Date(),date=String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");const count=loadOrders().filter(o=>o.date===todayKey()).length+1;return date+"-"+String(count).padStart(3,"0")}
+function currentOrder(){return{
+      id:orderId(),
+      date:todayKey(),
+      time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
+      phone:$("phone").value.trim(),
+      address:$("address").value.trim(),
+      region:$("region").value,
+      note:$("note").value.trim(),
+      items:{...qty},
+      total:FLAVORS.reduce((sum,n)=>sum+qty[n],0)
+    }}
+function validate(o){if(!o.address)return"请填写配送地址。";if(o.total<1)return"至少选择1包。";return""}
+function rememberCustomer(o){const cs=loadCustomers(),old=cs[o.address]||{orders:0};cs[o.address]={phone:o.phone,address:o.address,region:o.region,orders:(old.orders||0)+1,lastDate:o.date,lastItems:{...o.items}};saveCustomers(cs)}
+function rebuildCustomerStats(){const orders=loadOrders().slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)),cs={};orders.forEach(o=>{if(!o.address)return;if(!cs[o.address])cs[o.address]={phone:"",address:o.address,region:o.region||"其他",orders:0,lastDate:"",lastItems:{}};const c=cs[o.address];c.phone=o.phone||c.phone;c.region=o.region||c.region;c.orders++;c.lastDate=o.date;c.lastItems={...(o.items||{})}});saveCustomers(cs)}
 
-      // Update saved address profiles and existing orders using the old region
-      const cs=loadCustomers();
-      Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=name});
-      saveCustomers(cs);
-      const orders=loadOrders();
-      orders.forEach(o=>{if(o.region===old)o.region=name});
-      saveOrders(orders);
-
-      renderRegionSelect(name); renderRegionList(); renderAll();
-      $("regionMsg").textContent=`已将“${old}”改为“${name}”。`;
-    }
-  });
-
-  document.querySelectorAll("[data-region-del]").forEach(btn=>{
-    btn.onclick=()=>{
-      let regs=loadRegions(), i=Number(btn.dataset.regionDel), old=regs[i];
-      if(regs.length<=1){$("regionMsg").textContent="至少要保留一个配送区域。";return}
-      if(!confirm(`确定删除“${old}”吗？已保存订单不会删除，但对应地址之后需要重新选择区域。`))return;
-      regs.splice(i,1); saveRegions(regs);
-
-      const fallback=regs[0];
-      const cs=loadCustomers();
-      Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=fallback});
-      saveCustomers(cs);
-      renderRegionSelect(fallback); renderRegionList(); renderAll();
-      $("regionMsg").textContent=`已删除“${old}”，相关常用地址暂时改到“${fallback}”。`;
-    }
-  });
-}
-function addRegion(){
-  const name=$("newRegion").value.trim();
-  if(!name){$("regionMsg").textContent="请输入区域名称。";return}
-  const regs=loadRegions();
-  if(regs.includes(name)){$("regionMsg").textContent="这个区域已经存在。";return}
-  regs.push(name); saveRegions(regs);
-  $("newRegion").value="";
-  renderRegionSelect(name); renderRegionList();
-  $("regionMsg").textContent=`已新增“${name}”。`;
-}
-function renderFlavors(){
-  const box=$("flavorBox"); box.innerHTML="";
-  FLAVORS.forEach(name=>{
-    const r=document.createElement("div"); r.className="flavor";
-    r.innerHTML=`<span>${name}</span><div class="step"><button type="button" aria-label="${name}减一">−</button><span class="qty">${qty[name]}</span><button type="button" aria-label="${name}加一">+</button></div>`;
-    const bs=r.querySelectorAll("button");
-    bs[0].onclick=()=>{qty[name]=Math.max(0,qty[name]-1);renderFlavors()};
-    bs[1].onclick=()=>{qty[name]=Math.min(99,qty[name]+1);renderFlavors()};
-    box.appendChild(r);
-  });
-  $("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+qty[n],0);
-}
-function orderId(){
-  const d=new Date(), date=String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
-  const count=loadOrders().filter(o=>o.date===todayKey()).length+1;
-  return date+"-"+String(count).padStart(3,"0");
-}
-function currentOrder(){
-  return {
-    id:orderId(),date:todayKey(),time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
-    phone:$("phone").value.trim(),address:$("address").value.trim(),
-    region:$("region").value,delivery:$("delivery").value,note:$("note").value.trim(),
-    items:{...qty},total:FLAVORS.reduce((s,n)=>s+qty[n],0)
-  }
-}
-function validate(o){
-  if(!o.address)return "请填写配送地址。";
-  if(o.total<1)return "至少选择1包。";
-  return "";
-}
-function rememberCustomer(o){
-  const cs=loadCustomers();
-  const old=cs[o.address]||{orders:0};
-  cs[o.address]={phone:o.phone,address:o.address,region:o.region,orders:(old.orders||0)+1};
-  saveCustomers(cs);
-}
 function saveOrder(doPrint){
-  const o=currentOrder(), err=validate(o);
-  if(err){$("msg").textContent=err;return}
-  let orders=loadOrders();
-  if(editingKey){
-    const idx=orders.findIndex(x=>x.date===editingKey.date && x.id===editingKey.id);
-    if(idx<0){$("msg").textContent="找不到要修改的订单。";return}
-    o.id=editingKey.id;
-    o.date=editingKey.date;
-    orders[idx]=o;
-    saveOrders(orders);
-    rebuildCustomerStats();
-    buildReceipt(o);
-    $("msg").textContent=`订单 ${o.id} 已修改并保存。`;
-    stopEditing(false);
-  }else{
-    orders.push(o); saveOrders(orders); rememberCustomer(o);
-    buildReceipt(o); $("msg").textContent=`订单 ${o.id} 已保存。`;
-  }
-  renderAll();
-  if(doPrint)window.print();
+ const o=currentOrder(),err=validate(o);
+ if(err){$("msg").textContent=err;return false}
+ let orders=loadOrders();
+ if(editingKey){
+   const idx=orders.findIndex(x=>x.date===editingKey.date&&x.id===editingKey.id);
+   if(idx<0){$("msg").textContent="找不到要修改的订单。";return false}
+   const old=orders[idx];
+   o.id=old.id;o.date=old.date;o.time=old.time;
+   orders[idx]=o;
+   saveOrders(orders);rebuildCustomerStats();buildReceipt(o);
+   $("msg").textContent=`订单 ${o.id} 已修改并保存。`;
+   stopEditing(false);
+ }else{
+   const duplicate=orders.find(x=>x.date===todayKey()&&x.address===o.address);
+   if(duplicate&&!confirm(`这个地址今天已经有订单 ${duplicate.id}。\n确定还要再新增一张吗？`)){
+     $("msg").textContent="已取消保存，请先检查今天已有的订单。";
+     return false
+   }
+   orders.push(o);saveOrders(orders);rememberCustomer(o);buildReceipt(o);
+   $("msg").textContent=`订单 ${o.id} 已保存。`;
+ }
+ renderAll();
+ if(doPrint)window.print();
+ return true
 }
-function rebuildCustomerStats(){
-  const orders=loadOrders(), cs={};
-  orders.forEach(o=>{
-    if(!o.address)return;
-    if(!cs[o.address]) cs[o.address]={phone:o.phone||"",address:o.address||"",region:o.region||"其他",orders:0};
-    cs[o.address].phone=o.phone||cs[o.address].phone;
-    cs[o.address].address=o.address||cs[o.address].address;
-    cs[o.address].region=o.region||cs[o.address].region;
-    cs[o.address].orders++;
-  });
-  saveCustomers(cs);
-}
-function startEditing(o){
-  editingKey={date:o.date,id:o.id};
-  $("phone").value=o.phone||"";
-  $("address").value=o.address||"";
-  $("region").value=o.region||"其他";
-  $("delivery").value=o.delivery||"今晚";
-  $("note").value=o.note||"";
-  FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);
-  renderFlavors();
-  $("editNotice").style.display="block";
-  $("editingId").textContent=o.id;
-  $("cancelEdit").style.display="inline-block";
-  document.querySelector('[data-page="order"]').click();
-  $("msg").textContent=`已载入订单 ${o.id}，修改后点“保存并打印”或“仅保存”。`;
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-function stopEditing(clear=true){
-  editingKey=null;
-  $("editNotice").style.display="none";
-  $("editingId").textContent="";
-  $("cancelEdit").style.display="none";
-  if(clear)clearForm();
-}
-function buildReceipt(o){
-  let itemHtml=FLAVORS.filter(n=>o.items[n]>0).map(n=>`<div class="rrow"><span>${n}</span><b>× ${o.items[n]}</b></div>`).join("");
-  $("receipt").innerHTML=`<h2>手工拌面 配送单</h2>
-  <div>${o.address}</div>${o.phone?`<div>${o.phone}</div>`:""}
-  <div class="line"></div>${itemHtml}<div class="line"></div>
-  <div class="rrow"><b>合计</b><b>${o.total} 包</b></div>
-  <div>区域：${o.region}</div><div>配送：${o.delivery}</div>${o.note?`<div>备注：${o.note}</div>`:""}
-  <div>订单号：${o.id}</div><div>时间：${o.time}</div>`;
-}
-function clearForm(){
-  editingKey=null;
-  $("editNotice").style.display="none";
-  $("editingId").textContent="";
-  $("cancelEdit").style.display="none";
-  ["phone","address","note"].forEach(id=>$(id).value="");
-  const regs=loadRegions(); $("region").value=regs[0]||""; $("delivery").value="今晚";
-  FLAVORS.forEach(n=>qty[n]=0); renderFlavors(); $("msg").textContent="已清空当前订单。";
-}
-function fillAddress(address){
-  const c=loadCustomers()[address]; if(!c)return;
-  $("phone").value=c.phone||"";
-  const regs=loadRegions();
-  if(regs.includes(c.region)) $("region").value=c.region;
-}
-function renderCustomers(){
-  const cs=loadCustomers(), addresses=Object.keys(cs);
-  $("addressList").innerHTML=addresses.map(a=>`<option value="${a}"></option>`).join("");
-  $("customerTable").innerHTML=addresses.length?addresses.sort().map(a=>{const c=cs[a];return `<tr><td>${a}</td><td>${c.phone||""}</td><td>${c.region||""}</td><td>${c.orders||0}</td></tr>`}).join(""):`<tr><td colspan="4" class="small">暂无地址资料</td></tr>`;
-}
+function startEditing(o){editingKey={date:o.date,id:o.id};$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
+function stopEditing(clear=true){editingKey=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";if(clear)clearForm()}
+function clearForm(){editingKey=null;lastOrderForAddress=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");const regs=loadRegions();$("region").value=regs[0]||"";FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
+function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`<div class="rrow"><span>${esc(n)}</span><b>× ${o.items[n]}</b></div>`).join("");$("receipt").innerHTML=`<h2>手工拌面 配送单</h2><div>${esc(o.address)}</div>${o.phone?`<div>${esc(o.phone)}</div>`:""}<div class="line"></div>${itemHtml}<div class="line"></div><div class="rrow"><b>合计</b><b>${o.total} 包</b></div><div>区域：${esc(o.region)}</div>${o.note?`<div>备注：${esc(o.note)}</div>`:""}<div>订单号：${esc(o.id)}</div><div>时间：${esc(o.time)}</div>`}
+
+function getLastOrder(address){return loadOrders().filter(o=>o.address===address).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0]||null}
+function showLastOrder(address){const c=loadCustomers()[address];if(c){$("phone").value=c.phone||"";const regs=loadRegions();if(regs.includes(c.region))$("region").value=c.region}lastOrderForAddress=getLastOrder(address);if(lastOrderForAddress){$("lastOrderText").textContent=`${lastOrderForAddress.date}，${itemsText(lastOrderForAddress)}`;$("lastOrderBox").style.display="block"}else{$("lastOrderBox").style.display="none"}}
+function copyLastOrder(){if(!lastOrderForAddress)return;const o=lastOrderForAddress;FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);if(o.note)$("note").value=o.note;renderFlavors();$("msg").textContent="已按上次购买数量填写，可以继续调整。"}
+function repeatOrder(o){clearForm();$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();showLastOrder(o.address);document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，新订单可继续修改后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
+
+function updateStatus(date,id,status){if(!STATUSES.includes(status))return;const orders=loadOrders(),idx=orders.findIndex(o=>o.date===date&&o.id===id);if(idx<0)return;orders[idx].status=status;saveOrders(orders);renderAll()}
+function statusSelect(o,source){return`<select class="status-select" data-status-date="${esc(o.date)}" data-status-id="${esc(o.id)}" data-status-source="${source}">${STATUSES.map(s=>`<option ${orderStatus(o)===s?"selected":""}>${s}</option>`).join("")}</select>`}
+function bindStatusSelects(){document.querySelectorAll("[data-status-id]").forEach(el=>el.onchange=()=>updateStatus(el.dataset.statusDate,el.dataset.statusId,el.value))}
 function renderToday(){
-  const orders=loadOrders().filter(o=>o.date===todayKey()).sort((a,b)=>a.region.localeCompare(b.region,"zh-CN"));
-  $("todayHouseholds").textContent=orders.length;$("todayBags").textContent=orders.reduce((s,o)=>s+o.total,0);
-  $("todayRegions").textContent=new Set(orders.map(o=>o.region)).size;
-  $("todayTable").innerHTML=orders.length?orders.map((o,i)=>`<tr><td>${o.id}</td><td>${o.address}</td><td>${o.phone||""}</td><td><span class="badge">${o.region}</span></td><td><b>${o.total}</b></td><td class="row-actions"><button class="btn secondary" data-edit="${o.id}">修改</button><button class="btn secondary" data-print="${o.id}">打印</button><button class="btn danger" data-del="${o.id}">删除</button></td></tr>`).join(""):`<tr><td colspan="6" class="small">今天还没有订单</td></tr>`;
-  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>{const o=orders.find(x=>x.id===b.dataset.edit);if(o)startEditing(o)});
-  document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{const o=orders.find(x=>x.id===b.dataset.print);buildReceipt(o);window.print()});
-  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>!(x.date===todayKey()&&x.id===b.dataset.del));saveOrders(all);rebuildCustomerStats();renderAll()});
+ const orders=loadOrders().filter(o=>o.date===todayKey()).sort((a,b)=>(a.region||"").localeCompare(b.region||"","zh-CN")||a.id.localeCompare(b.id));
+ $("todayHouseholds").textContent=orders.length;
+ $("todayBags").textContent=orders.reduce((sum,o)=>sum+(Number(o.total)||0),0);
+ $("todayRegions").textContent=new Set(orders.map(o=>o.region)).size;
+ const totals=Object.fromEntries(FLAVORS.map(n=>[n,0]));
+ orders.forEach(o=>FLAVORS.forEach(n=>totals[n]+=o.items?.[n]||0));
+ $("todayFlavorCards").innerHTML=FLAVORS.map(n=>`<div class="mini"><span class="small">${n}</span><div><b>${totals[n]}</b> 包</div></div>`).join("");
+ $("todayTable").innerHTML=orders.length?orders.map(o=>`<tr>
+ <td class="nowrap">${esc(o.id)}</td>
+ <td><b>${esc(o.address)}</b>${o.phone?`<div class="small" style="margin-top:4px">${esc(o.phone)}</div>`:""}</td>
+ <td><span class="badge">${esc(o.region||"")}</span></td>
+ <td>${esc(itemsText(o))}</td>
+ <td><b>${o.total||0}</b></td>
+ <td>${o.note?esc(o.note):'<span class="small">—</span>'}</td>
+ <td><div class="row-actions"><button class="btn secondary" data-edit-date="${esc(o.date)}" data-edit-id="${esc(o.id)}">修改</button><button class="btn danger" data-del-date="${esc(o.date)}" data-del-id="${esc(o.id)}">删除</button></div></td>
+ </tr>`).join(""):`<tr><td colspan="7" class="small">今天还没有订单</td></tr>`;
+ bindOrderActions();
 }
-function renderSummary(){
-  const orders=loadOrders().filter(o=>o.date===todayKey());
-  const totals=Object.fromEntries(FLAVORS.map(n=>[n,0])); orders.forEach(o=>FLAVORS.forEach(n=>totals[n]+=o.items[n]||0));
-  const region={}; orders.forEach(o=>region[o.region]=(region[o.region]||0)+o.total);
-  $("deliverySummary").innerHTML=`
-  <div style="font-size:30px;font-weight:800;margin:8px 0 18px">今日共 ${orders.reduce((s,o)=>s+o.total,0)} 包</div>
-  ${FLAVORS.map(n=>`<div class="flavor"><span>${n}</span><b>${totals[n]} 包</b></div>`).join("")}
-  <h4 style="margin:22px 0 8px">按配送区域</h4>
-  ${Object.keys(region).length?Object.entries(region).map(([k,v])=>`<div class="flavor"><span>${k}</span><b>${v} 包</b></div>`).join(""):`<div class="small">暂无订单</div>`}`;
+function bindOrderActions(){document.querySelectorAll("[data-edit-id]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.editDate&&x.id===b.dataset.editId);if(o)startEditing(o)});document.querySelectorAll("[data-print-id]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.printDate&&x.id===b.dataset.printId);if(o){buildReceipt(o);window.print()}});document.querySelectorAll("[data-del-id]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>!(x.date===b.dataset.delDate&&x.id===b.dataset.delId));saveOrders(all);rebuildCustomerStats();renderAll()});document.querySelectorAll("[data-repeat-date]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.repeatDate&&x.id===b.dataset.repeatId);if(o)repeatOrder(o)})}
+
+function renderHistory(){
+ const date=$("historyDate").value,kw=$("historySearch").value.trim().toLowerCase();
+ let orders=loadOrders().slice().sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+ if(date)orders=orders.filter(o=>o.date===date);
+ if(kw)orders=orders.filter(o=>[o.address,o.phone,o.region,o.id].some(v=>String(v||"").toLowerCase().includes(kw)));
+ $("historyCount").textContent=`共找到 ${orders.length} 张订单，${orders.reduce((sum,o)=>sum+(o.total||0),0)} 包`;
+ $("historyTable").innerHTML=orders.length?orders.map(o=>`<tr>
+ <td>${esc(o.date)}</td><td>${esc(o.id)}</td>
+ <td>${esc(o.address)}${o.phone?`<div class="small">${esc(o.phone)}</div>`:""}</td>
+ <td>${esc(o.region||"")}</td><td>${esc(itemsText(o))}</td>
+ <td><div class="row-actions"><button class="btn secondary" data-repeat-date="${esc(o.date)}" data-repeat-id="${esc(o.id)}">按此单下单</button><button class="btn secondary" data-edit-date="${esc(o.date)}" data-edit-id="${esc(o.id)}">修改</button><button class="btn danger" data-del-date="${esc(o.date)}" data-del-id="${esc(o.id)}">删除</button></div></td>
+ </tr>`).join(""):`<tr><td colspan="6" class="small">没有符合条件的订单</td></tr>`;
+ bindOrderActions();
 }
-function exportBackup(){
-  const payload={
-    app:"手工拌面订单系统",
-    version:2,
-    exportedAt:new Date().toISOString(),
-    orders:loadOrders(),
-    customers:loadCustomers(),
-    regions:loadRegions()
-  };
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download=`拌面订单备份_${todayKey()}.json`;
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-  $("backupMsg").textContent="备份文件已导出。建议保存到 iCloud Drive 或移动硬盘。";
+
+function renderCustomers(){const cs=loadCustomers(),kw=$("customerSearch")?.value.trim().toLowerCase()||"",addresses=Object.keys(cs).filter(a=>!kw||a.toLowerCase().includes(kw)||String(cs[a].phone||"").includes(kw));$("addressList").innerHTML=Object.keys(cs).map(a=>`<option value="${esc(a)}"></option>`).join("");$("customerTable").innerHTML=addresses.length?addresses.sort().map(a=>{const c=cs[a],last=getLastOrder(a);return`<tr><td>${esc(a)}</td><td>${esc(c.phone||"")}</td><td>${esc(c.region||"")}</td><td>${c.orders||0}</td><td>${last?`${esc(last.date)}<div class="small">${esc(itemsText(last))}</div>`:""}</td><td>${last?`<button class="btn secondary" data-repeat-date="${esc(last.date)}" data-repeat-id="${esc(last.id)}">再次下单</button>`:""}</td></tr>`}).join(""):`<tr><td colspan="6" class="small">暂无地址资料</td></tr>`;bindOrderActions()}
+
+function renderBackupStatus(){const raw=localStorage.getItem("noodleLastBackup");if(!raw){$("backupStatus").className="notice warning";$("backupStatus").textContent="还没有记录到备份，建议现在先导出一份。";return}const d=new Date(raw),days=Math.floor((Date.now()-d.getTime())/86400000);if(!Number.isFinite(days)){localStorage.removeItem("noodleLastBackup");return renderBackupStatus()}$("backupStatus").className=days>=7?"notice warning":"notice success";$("backupStatus").textContent=`上次备份：${d.toLocaleString("zh-CN")}（${days}天前）${days>=7?"，建议重新备份。":""}`}
+async function exportTodayOrders(){
+ const orders=loadOrders().filter(o=>o.date===todayKey());
+ const msg=$("transferMsg");
+ if(!orders.length){msg.textContent="今天还没有订单可以导出。";return}
+ const payload={
+   app:"手工拌面订单系统",
+   type:"today-orders",
+   version:8,
+   date:todayKey(),
+   exportedAt:new Date().toISOString(),
+   source:"iPhone",
+   orders,
+   customers:loadCustomers(),
+   regions:loadRegions()
+ };
+ const text=JSON.stringify(payload,null,2);
+ const filename=`今日拌面订单_${todayKey()}.json`;
+ try{
+   const file=new File([text],filename,{type:"application/json"});
+   if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+     await navigator.share({
+       title:"今日拌面订单",
+       text:`今天 ${orders.length} 张订单`,
+       files:[file]
+     });
+     msg.textContent=`已生成今天 ${orders.length} 张订单文件，可发送到微信、旧电脑或 Mac。`;
+     return;
+   }
+ }catch(err){
+   if(err && err.name==="AbortError"){msg.textContent="已取消分享。";return}
+ }
+ try{
+   const blob=new Blob([text],{type:"application/json"});
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement("a");
+   a.href=url;
+   a.download=filename;
+   a.style.display="none";
+   document.body.appendChild(a);
+   a.click();
+   setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1500);
+   msg.textContent=`已生成今天 ${orders.length} 张订单文件。请到浏览器“下载”中查看。`;
+ }catch(err){
+   msg.textContent="导出失败，请重新打开页面后再试。";
+ }
 }
-function importBackup(){
-  const f=$("importFile").files[0];
-  if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}
-  const reader=new FileReader();
-  reader.onload=()=>{
-    try{
-      const data=JSON.parse(reader.result);
-      if(!data || !Array.isArray(data.orders) || typeof data.customers!=="object") throw new Error("格式错误");
-      if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;
-      saveOrders(data.orders);saveCustomers(data.customers||{});
-      if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);
-      renderRegionSelect();clearForm();renderRegionList();renderAll();
-      $("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`;
-    }catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}
-  };
-  reader.readAsText(f,"utf-8");
+function exportBackup(){const payload={app:"手工拌面订单系统",version:3,exportedAt:new Date().toISOString(),orders:loadOrders(),customers:loadCustomers(),regions:loadRegions()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`拌面订单备份_${todayKey()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);localStorage.setItem("noodleLastBackup",new Date().toISOString());renderBackupStatus();$("backupMsg").textContent="备份文件已导出。请保存到你容易找到的位置。"}
+function importBackup(){const f=$("importFile").files[0];if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!Array.isArray(data.orders)||typeof data.customers!=="object")throw new Error("格式错误");if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;saveOrders(data.orders);saveCustomers(data.customers||{});if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);rebuildCustomerStats();renderRegionSelect();clearForm();renderRegionList();renderAll();$("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`}catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}};reader.readAsText(f,"utf-8")}
+
+function renderAll(){renderToday();renderHistory();renderCustomers();renderBackupStatus()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.page).classList.add("active");if(b.dataset.page==="history")renderHistory()});
+function updateAddressClear(){
+ const hasText=$("address").value.length>0;
+ $("clearAddress").classList.toggle("show",hasText);
 }
-function renderAll(){renderToday();renderSummary();renderCustomers()}
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.page).classList.add("active")});
-$("address").addEventListener("input",e=>fillAddress(e.target.value.trim()));
-$("address").addEventListener("change",e=>fillAddress(e.target.value.trim()));
-$("address").addEventListener("blur",e=>fillAddress(e.target.value.trim()));
-$("savePrint").onclick=()=>saveOrder(true);$("saveOnly").onclick=()=>saveOrder(false);$("clearForm").onclick=clearForm;
-$("cancelEdit").onclick=()=>stopEditing(true);
-$("exportData").onclick=exportBackup;
-$("importData").onclick=importBackup;
-$("addRegion").onclick=addRegion;
-$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus();};
-renderRegionSelect();
-renderRegionList();
-renderFlavors();renderAll();
+["input","change","blur"].forEach(ev=>$("address").addEventListener(ev,e=>{
+ updateAddressClear();
+ showLastOrder(e.target.value.trim());
+}));
+$("clearAddress").onclick=()=>{
+ $("address").value="";
+ $("phone").value="";
+ $("lastOrderBox").style.display="none";
+ lastOrderForAddress=null;
+ updateAddressClear();
+ $("address").focus();
+};
+$("exportToday").onclick=exportTodayOrders;$("copyLastOrder").onclick=copyLastOrder;$("savePrint").onclick=()=>saveOrder(true);$("saveOnly").onclick=()=>{
+ const btn=$("saveOnly");
+ btn.classList.remove("save-feedback");
+ btn.textContent="仅保存";
+ const ok=saveOrder(false);
+ if(!ok)return;
+ btn.classList.add("save-feedback");
+ btn.textContent="✓ 已保存";
+ window.setTimeout(()=>{
+   btn.classList.remove("save-feedback");
+   btn.textContent="仅保存";
+ },900);
+};$("clearForm").onclick=clearForm;$("cancelEdit").onclick=()=>stopEditing(true);$("exportData").onclick=exportBackup;$("importData").onclick=importBackup;$("addRegion").onclick=addRegion;$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus()};$("historyDate").oninput=renderHistory;$("historySearch").oninput=renderHistory;$("customerSearch").oninput=renderCustomers;
+renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
+
 </script>
 
 <script>
-if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 }
 </script>
 </body>
