@@ -300,6 +300,8 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
           <div><b>这个地址上次买过：</b><span id="lastOrderText"></span></div>
           <button class="btn secondary" id="copyLastOrder" type="button" style="margin-top:9px">按上次订单填写</button>
         </div>
+        <label>订单日期</label><input id="orderDate" type="date">
+        <div class="small">正常接单不用改；补以前的订单时选择实际订单日期。</div>
         <label>电话（选填）</label><input id="phone" placeholder="可不填" inputmode="tel">
         <label>配送区域</label>
         <div style="display:flex;gap:8px;align-items:center">
@@ -363,9 +365,10 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   <section id="data" class="page">
     <div class="grid">
       <div class="card">
-        <h3 style="margin-top:0">导出今日订单到电脑</h3>
-        <p class="small">导出今天的订单文件，可通过微信文件传输助手发送到旧电脑打单，也可发送到 Mac 销售管理系统导入。</p>
-        <div class="actions"><button class="btn primary" id="exportToday" type="button">导出今日订单</button></div>
+        <h3 style="margin-top:0">订单传电脑</h3>
+        <p class="small">默认导出今天；补录以前日期的订单后，在这里选择对应日期再导出给 Dell 或 Mac。</p>
+        <label>导出日期</label><input id="exportDate" type="date">
+        <div class="actions"><button class="btn primary" id="exportToday" type="button">导出所选日期订单</button></div>
         <div class="notice" id="transferMsg"></div>
       </div>
       <div class="card">
@@ -424,10 +427,11 @@ function renderRegionList(){const regions=loadRegions();$("regionList").innerHTM
 function addRegion(){const name=$("newRegion").value.trim();if(!name){$("regionMsg").textContent="请输入区域名称。";return}const regs=loadRegions();if(regs.includes(name)){$("regionMsg").textContent="这个区域已经存在。";return}regs.push(name);saveRegions(regs);$("newRegion").value="";renderRegionSelect(name);renderRegionList();$("regionMsg").textContent=`已新增“${name}”。`}
 
 function renderFlavors(){const box=$("flavorBox");box.innerHTML="";FLAVORS.forEach(name=>{const r=document.createElement("div");r.className="flavor";r.innerHTML=`<span>${name}</span><div class="step"><button type="button">−</button><span class="qty">${qty[name]}</span><button type="button">+</button></div>`;const bs=r.querySelectorAll("button");bs[0].onclick=()=>{qty[name]=Math.max(0,qty[name]-1);renderFlavors()};bs[1].onclick=()=>{qty[name]=Math.min(99,qty[name]+1);renderFlavors()};box.appendChild(r)});$("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+qty[n],0)}
-function orderId(){const d=new Date(),date=String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");const count=loadOrders().filter(o=>o.date===todayKey()).length+1;return date+"-"+String(count).padStart(3,"0")}
-function currentOrder(){return{
-      id:orderId(),
-      date:todayKey(),
+function selectedOrderDate(){return $("orderDate")?.value||todayKey()}
+function orderId(dateKey=selectedOrderDate()){const p=String(dateKey).split("-"),date=(p[1]||"")+(p[2]||"");const count=loadOrders().filter(o=>o.date===dateKey).length+1;return date+"-"+String(count).padStart(3,"0")}
+function currentOrder(){const date=selectedOrderDate();return{
+      id:orderId(date),
+      date:date,
       time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
       phone:$("phone").value.trim(),
       address:$("address").value.trim(),
@@ -448,15 +452,15 @@ function saveOrder(doPrint){
    const idx=orders.findIndex(x=>x.date===editingKey.date&&x.id===editingKey.id);
    if(idx<0){$("msg").textContent="找不到要修改的订单。";return false}
    const old=orders[idx];
-   o.id=old.id;o.date=old.date;o.time=old.time;
+   o.id=old.id;o.time=old.time;
    orders[idx]=o;
    saveOrders(orders);rebuildCustomerStats();buildReceipt(o);
    $("msg").textContent=`订单 ${o.id} 已修改并保存。`;
    stopEditing(false);
  }else{
-   const duplicate=orders.find(x=>x.date===todayKey()&&x.address===o.address);
-   if(duplicate&&!confirm(`这个地址今天已经有订单 ${duplicate.id}。\n确定还要再新增一张吗？`)){
-     $("msg").textContent="已取消保存，请先检查今天已有的订单。";
+   const duplicate=orders.find(x=>x.date===o.date&&x.address===o.address);
+   if(duplicate&&!confirm(`${o.date} 这个地址已经有订单 ${duplicate.id}。\n确定还要再新增一张吗？`)){
+     $("msg").textContent=`已取消保存，请先检查 ${o.date} 已有的订单。`;
      return false
    }
    orders.push(o);saveOrders(orders);rememberCustomer(o);buildReceipt(o);
@@ -468,7 +472,7 @@ function saveOrder(doPrint){
  if(doPrint)window.print();
  return true
 }
-function startEditing(o){editingKey={date:o.date,id:o.id};$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
+function startEditing(o){editingKey={date:o.date,id:o.id};$("orderDate").value=o.date||todayKey();$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
 function stopEditing(clear=true){editingKey=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";if(clear)clearForm()}
 function clearForm(){editingKey=null;lastOrderForAddress=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");const regs=loadRegions();$("region").value=regs[0]||"";FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
 function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`<div class="rrow"><span>${esc(n)}</span><b>× ${o.items[n]}</b></div>`).join("");$("receipt").innerHTML=`<h2>手工拌面 配送单</h2><div>${esc(o.address)}</div>${o.phone?`<div>${esc(o.phone)}</div>`:""}<div class="line"></div>${itemHtml}<div class="line"></div><div class="rrow"><b>合计</b><b>${o.total} 包</b></div><div>区域：${esc(o.region)}</div>${o.note?`<div>备注：${esc(o.note)}</div>`:""}<div>订单号：${esc(o.id)}</div><div>时间：${esc(o.time)}</div>`}
@@ -476,7 +480,7 @@ function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map
 function getLastOrder(address){return loadOrders().filter(o=>o.address===address).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0]||null}
 function showLastOrder(address){const c=loadCustomers()[address];if(c){$("phone").value=c.phone||"";const regs=loadRegions();if(regs.includes(c.region))$("region").value=c.region}lastOrderForAddress=getLastOrder(address);if(lastOrderForAddress){$("lastOrderText").textContent=`${lastOrderForAddress.date}，${itemsText(lastOrderForAddress)}`;$("lastOrderBox").style.display="block"}else{$("lastOrderBox").style.display="none"}}
 function copyLastOrder(){if(!lastOrderForAddress)return;const o=lastOrderForAddress;FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);if(o.note)$("note").value=o.note;renderFlavors();$("msg").textContent="已按上次购买数量填写，可以继续调整。"}
-function repeatOrder(o){clearForm();$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();showLastOrder(o.address);document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，新订单可继续修改后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
+function repeatOrder(o){clearForm();$("orderDate").value=todayKey();$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();showLastOrder(o.address);document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，新订单可继续修改后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
 
 function updateStatus(date,id,status){if(!STATUSES.includes(status))return;const orders=loadOrders(),idx=orders.findIndex(o=>o.date===date&&o.id===id);if(idx<0)return;orders[idx].status=status;saveOrders(orders);renderAll()}
 function statusSelect(o,source){return`<select class="status-select" data-status-date="${esc(o.date)}" data-status-id="${esc(o.id)}" data-status-source="${source}">${STATUSES.map(s=>`<option ${orderStatus(o)===s?"selected":""}>${s}</option>`).join("")}</select>`}
@@ -520,50 +524,12 @@ function renderCustomers(){const cs=loadCustomers(),kw=$("customerSearch")?.valu
 
 function renderBackupStatus(){const raw=localStorage.getItem("noodleLastBackup");if(!raw){$("backupStatus").className="notice warning";$("backupStatus").textContent="还没有记录到备份，建议现在先导出一份。";return}const d=new Date(raw),days=Math.floor((Date.now()-d.getTime())/86400000);if(!Number.isFinite(days)){localStorage.removeItem("noodleLastBackup");return renderBackupStatus()}$("backupStatus").className=days>=7?"notice warning":"notice success";$("backupStatus").textContent=`上次备份：${d.toLocaleString("zh-CN")}（${days}天前）${days>=7?"，建议重新备份。":""}`}
 async function exportTodayOrders(){
- const orders=loadOrders().filter(o=>o.date===todayKey());
- const msg=$("transferMsg");
- if(!orders.length){msg.textContent="今天还没有订单可以导出。";return}
- const payload={
-   app:"手工拌面订单系统",
-   type:"today-orders",
-   version:8,
-   date:todayKey(),
-   exportedAt:new Date().toISOString(),
-   source:"iPhone",
-   orders,
-   customers:loadCustomers(),
-   regions:loadRegions()
- };
- const text=JSON.stringify(payload,null,2);
- const filename=`今日拌面订单_${todayKey()}.json`;
- try{
-   const file=new File([text],filename,{type:"application/json"});
-   if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-     await navigator.share({
-       title:"今日拌面订单",
-       text:`今天 ${orders.length} 张订单`,
-       files:[file]
-     });
-     msg.textContent=`已生成今天 ${orders.length} 张订单文件，可发送到微信、旧电脑或 Mac。`;
-     return;
-   }
- }catch(err){
-   if(err && err.name==="AbortError"){msg.textContent="已取消分享。";return}
- }
- try{
-   const blob=new Blob([text],{type:"application/json"});
-   const url=URL.createObjectURL(blob);
-   const a=document.createElement("a");
-   a.href=url;
-   a.download=filename;
-   a.style.display="none";
-   document.body.appendChild(a);
-   a.click();
-   setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1500);
-   msg.textContent=`已生成今天 ${orders.length} 张订单文件。请到浏览器“下载”中查看。`;
- }catch(err){
-   msg.textContent="导出失败，请重新打开页面后再试。";
- }
+ const date=$("exportDate")?.value||todayKey(),orders=loadOrders().filter(o=>o.date===date),msg=$("transferMsg");
+ if(!orders.length){msg.textContent=`${date} 没有订单可以导出。`;return}
+ const payload={app:"手工拌面订单系统",type:"today-orders",version:10,date,exportedAt:new Date().toISOString(),source:"iPhone",orders,customers:loadCustomers(),regions:loadRegions()};
+ const text=JSON.stringify(payload,null,2),filename=`拌面订单_${date}.json`;
+ try{const file=new File([text],filename,{type:"application/json"});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({title:`${date} 拌面订单`,files:[file]});msg.textContent=`${date} 的 ${orders.length} 张订单已调出分享菜单。`;return}}catch(e){}
+ const blob=new Blob([text],{type:"application/json"}),url=URL.createObjectURL(blob),x=document.createElement("a");x.href=url;x.download=filename;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(url),800);msg.textContent=`已导出 ${date} 的 ${orders.length} 张订单。`;
 }
 function exportBackup(){const payload={app:"手工拌面订单系统",version:3,exportedAt:new Date().toISOString(),orders:loadOrders(),customers:loadCustomers(),regions:loadRegions()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`拌面订单备份_${todayKey()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);localStorage.setItem("noodleLastBackup",new Date().toISOString());renderBackupStatus();$("backupMsg").textContent="备份文件已导出。请保存到你容易找到的位置。"}
 function importBackup(){const f=$("importFile").files[0];if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!Array.isArray(data.orders)||typeof data.customers!=="object")throw new Error("格式错误");if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;saveOrders(data.orders);saveCustomers(data.customers||{});if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);rebuildCustomerStats();renderRegionSelect();clearForm();renderRegionList();renderAll();$("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`}catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}};reader.readAsText(f,"utf-8")}
@@ -599,7 +565,7 @@ $("exportToday").onclick=exportTodayOrders;$("copyLastOrder").onclick=copyLastOr
    btn.textContent="仅保存";
  },900);
 };$("clearForm").onclick=clearForm;$("cancelEdit").onclick=()=>stopEditing(true);$("exportData").onclick=exportBackup;$("importData").onclick=importBackup;$("addRegion").onclick=addRegion;$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus()};$("historyDate").oninput=renderHistory;$("historySearch").oninput=renderHistory;$("customerSearch").oninput=renderCustomers;
-renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
+$("orderDate").value=todayKey();$("exportDate").value=todayKey();renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
 
 </script>
 
