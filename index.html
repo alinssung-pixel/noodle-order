@@ -264,6 +264,19 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   .wide-customers th:nth-child(6),.wide-customers td:nth-child(6){min-width:95px!important}
 }
 
+
+/* 接单页右上角：小巧订单日期框（无文字标签） */
+.order-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:2px}
+.order-card-head h3{margin:0}
+.order-date-compact{position:relative;display:inline-flex;align-items:center;justify-content:center;width:126px;height:46px;border:1px solid var(--line);border-radius:11px;background:#fff;overflow:hidden;flex:0 0 auto}
+.order-date-text{font-size:16px;font-weight:500;letter-spacing:.1px;color:var(--text);pointer-events:none;white-space:nowrap}
+.order-date-native{position:absolute;inset:0;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:inherit!important;opacity:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+@media(max-width:760px){
+  .order-card-head{align-items:center;margin-bottom:6px}
+  .order-date-compact{width:122px;height:44px;border-radius:11px}
+  .order-date-text{font-size:16px}
+}
+
 </style>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -289,7 +302,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   <section id="order" class="page active">
     <div class="grid">
       <div class="card">
-        <h3 style="margin-top:0">客户信息</h3>
+        <div class="order-card-head"><h3>客户信息</h3><div class="order-date-compact" title="点击选择订单日期"><span id="orderDateText" class="order-date-text"></span><input id="orderDate" class="order-date-native" type="date" aria-label="订单日期"></div></div>
         <label>地址</label>
         <div class="input-clear-wrap">
           <input id="address" list="addressList" placeholder="例如：百捷御府8栋2单元2507" autocomplete="off">
@@ -300,8 +313,6 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
           <div><b>这个地址上次买过：</b><span id="lastOrderText"></span></div>
           <button class="btn secondary" id="copyLastOrder" type="button" style="margin-top:9px">按上次订单填写</button>
         </div>
-        <label>订单日期</label><input id="orderDate" type="date">
-        <div class="small">正常接单不用改；补以前的订单时选择实际订单日期。</div>
         <label>电话（选填）</label><input id="phone" placeholder="可不填" inputmode="tel">
         <label>配送区域</label>
         <div style="display:flex;gap:8px;align-items:center">
@@ -409,6 +420,9 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const localDateKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const todayKey=()=>localDateKey();
+function formatOrderDate(v){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");return m?`${m[1]}/${m[2]}/${m[3]}`:""}
+function syncOrderDateText(){const el=$("orderDateText");if(el)el.textContent=formatOrderDate($("orderDate")?.value||todayKey())}
+function setOrderDate(v){if($("orderDate"))$("orderDate").value=v||todayKey();syncOrderDateText()}
 const DEFAULT_REGIONS=["城东","晋江","洛江","其他"];
 const safeParse=(key,fallback)=>{try{const v=JSON.parse(localStorage.getItem(key)||"null");return v??fallback}catch{return fallback}};
 const loadRegions=()=>{const saved=safeParse("noodleRegions",null);if(Array.isArray(saved)&&saved.length)return saved;localStorage.setItem("noodleRegions",JSON.stringify(DEFAULT_REGIONS));return [...DEFAULT_REGIONS]};
@@ -472,15 +486,15 @@ function saveOrder(doPrint){
  if(doPrint)window.print();
  return true
 }
-function startEditing(o){editingKey={date:o.date,id:o.id};$("orderDate").value=o.date||todayKey();$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
+function startEditing(o){editingKey={date:o.date,id:o.id};setOrderDate(o.date||todayKey());$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
 function stopEditing(clear=true){editingKey=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";if(clear)clearForm()}
-function clearForm(){editingKey=null;lastOrderForAddress=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");const regs=loadRegions();$("region").value=regs[0]||"";FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
+function clearForm(){editingKey=null;lastOrderForAddress=null;setOrderDate(todayKey());$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");const regs=loadRegions();$("region").value=regs[0]||"";FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
 function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`<div class="rrow"><span>${esc(n)}</span><b>× ${o.items[n]}</b></div>`).join("");$("receipt").innerHTML=`<h2>手工拌面 配送单</h2><div>${esc(o.address)}</div>${o.phone?`<div>${esc(o.phone)}</div>`:""}<div class="line"></div>${itemHtml}<div class="line"></div><div class="rrow"><b>合计</b><b>${o.total} 包</b></div><div>区域：${esc(o.region)}</div>${o.note?`<div>备注：${esc(o.note)}</div>`:""}<div>订单号：${esc(o.id)}</div><div>时间：${esc(o.time)}</div>`}
 
 function getLastOrder(address){return loadOrders().filter(o=>o.address===address).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0]||null}
 function showLastOrder(address){const c=loadCustomers()[address];if(c){$("phone").value=c.phone||"";const regs=loadRegions();if(regs.includes(c.region))$("region").value=c.region}lastOrderForAddress=getLastOrder(address);if(lastOrderForAddress){$("lastOrderText").textContent=`${lastOrderForAddress.date}，${itemsText(lastOrderForAddress)}`;$("lastOrderBox").style.display="block"}else{$("lastOrderBox").style.display="none"}}
 function copyLastOrder(){if(!lastOrderForAddress)return;const o=lastOrderForAddress;FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);if(o.note)$("note").value=o.note;renderFlavors();$("msg").textContent="已按上次购买数量填写，可以继续调整。"}
-function repeatOrder(o){clearForm();$("orderDate").value=todayKey();$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();showLastOrder(o.address);document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，新订单可继续修改后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
+function repeatOrder(o){clearForm();setOrderDate(todayKey());$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();showLastOrder(o.address);document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，新订单可继续修改后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
 
 function updateStatus(date,id,status){if(!STATUSES.includes(status))return;const orders=loadOrders(),idx=orders.findIndex(o=>o.date===date&&o.id===id);if(idx<0)return;orders[idx].status=status;saveOrders(orders);renderAll()}
 function statusSelect(o,source){return`<select class="status-select" data-status-date="${esc(o.date)}" data-status-id="${esc(o.id)}" data-status-source="${source}">${STATUSES.map(s=>`<option ${orderStatus(o)===s?"selected":""}>${s}</option>`).join("")}</select>`}
@@ -565,7 +579,7 @@ $("exportToday").onclick=exportTodayOrders;$("copyLastOrder").onclick=copyLastOr
    btn.textContent="仅保存";
  },900);
 };$("clearForm").onclick=clearForm;$("cancelEdit").onclick=()=>stopEditing(true);$("exportData").onclick=exportBackup;$("importData").onclick=importBackup;$("addRegion").onclick=addRegion;$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus()};$("historyDate").oninput=renderHistory;$("historySearch").oninput=renderHistory;$("customerSearch").oninput=renderCustomers;
-$("orderDate").value=todayKey();$("exportDate").value=todayKey();renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
+setOrderDate(todayKey());$("orderDate").addEventListener("change",syncOrderDateText);$("exportDate").value=todayKey();renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
 
 </script>
 
