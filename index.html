@@ -427,7 +427,19 @@ const DEFAULT_REGIONS=["城东","晋江","洛江","其他"];
 const safeParse=(key,fallback)=>{try{const v=JSON.parse(localStorage.getItem(key)||"null");return v??fallback}catch{return fallback}};
 const loadRegions=()=>{const saved=safeParse("noodleRegions",null);if(Array.isArray(saved)&&saved.length)return saved;localStorage.setItem("noodleRegions",JSON.stringify(DEFAULT_REGIONS));return [...DEFAULT_REGIONS]};
 const saveRegions=x=>localStorage.setItem("noodleRegions",JSON.stringify(x));
-const loadOrders=()=>{const v=safeParse("noodleOrders",[]);return Array.isArray(v)?v:[]};
+const newUid=()=>{try{return crypto.randomUUID()}catch{return "iphone-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)}};
+const loadOrders=()=>{
+  const v=safeParse("noodleOrders",[]), orders=Array.isArray(v)?v:[];
+  let changed=false;
+  const used=new Set();
+  orders.forEach((o,i)=>{
+    let u=String(o.uid||"");
+    if(!u||used.has(u)){u="legacy-"+(o.date||"nodate")+"-"+(o.id||"noid")+"-"+i+"-"+Math.random().toString(36).slice(2,8);o.uid=u;changed=true}
+    used.add(u);
+  });
+  if(changed)localStorage.setItem("noodleOrders",JSON.stringify(orders));
+  return orders;
+};
 const saveOrders=x=>localStorage.setItem("noodleOrders",JSON.stringify(x));
 const loadCustomers=()=>{const v=safeParse("noodleCustomers",{});return v&&typeof v==="object"&&!Array.isArray(v)?v:{}};
 const saveCustomers=x=>localStorage.setItem("noodleCustomers",JSON.stringify(x));
@@ -442,8 +454,9 @@ function addRegion(){const name=$("newRegion").value.trim();if(!name){$("regionM
 
 function renderFlavors(){const box=$("flavorBox");box.innerHTML="";FLAVORS.forEach(name=>{const r=document.createElement("div");r.className="flavor";r.innerHTML=`<span>${name}</span><div class="step"><button type="button">−</button><span class="qty">${qty[name]}</span><button type="button">+</button></div>`;const bs=r.querySelectorAll("button");bs[0].onclick=()=>{qty[name]=Math.max(0,qty[name]-1);renderFlavors()};bs[1].onclick=()=>{qty[name]=Math.min(99,qty[name]+1);renderFlavors()};box.appendChild(r)});$("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+qty[n],0)}
 function selectedOrderDate(){return $("orderDate")?.value||todayKey()}
-function orderId(dateKey=selectedOrderDate()){const p=String(dateKey).split("-"),date=(p[1]||"")+(p[2]||"");const count=loadOrders().filter(o=>o.date===dateKey).length+1;return date+"-"+String(count).padStart(3,"0")}
+function orderId(dateKey=selectedOrderDate()){const p=String(dateKey).split("-"),date=(p[1]||"")+(p[2]||"");const nums=loadOrders().filter(o=>o.date===dateKey).map(o=>{const m=String(o.id||"").match(/-(\d+)$/);return m?Number(m[1]):0});const next=(nums.length?Math.max(...nums):0)+1;return date+"-"+String(next).padStart(3,"0")}
 function currentOrder(){const date=selectedOrderDate();return{
+      uid:newUid(),
       id:orderId(date),
       date:date,
       time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
@@ -463,10 +476,10 @@ function saveOrder(doPrint){
  if(err){$("msg").textContent=err;return false}
  let orders=loadOrders();
  if(editingKey){
-   const idx=orders.findIndex(x=>x.date===editingKey.date&&x.id===editingKey.id);
+   const idx=orders.findIndex(x=>x.uid===editingKey.uid);
    if(idx<0){$("msg").textContent="找不到要修改的订单。";return false}
    const old=orders[idx];
-   o.id=old.id;o.time=old.time;
+   o.uid=old.uid;o.id=old.id;o.time=old.time;
    orders[idx]=o;
    saveOrders(orders);rebuildCustomerStats();buildReceipt(o);
    $("msg").textContent=`订单 ${o.id} 已修改并保存。`;
@@ -486,7 +499,7 @@ function saveOrder(doPrint){
  if(doPrint)window.print();
  return true
 }
-function startEditing(o){editingKey={date:o.date,id:o.id};setOrderDate(o.date||todayKey());$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
+function startEditing(o){editingKey={uid:o.uid};setOrderDate(o.date||todayKey());$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
 function stopEditing(clear=true){editingKey=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";if(clear)clearForm()}
 function clearForm(){editingKey=null;lastOrderForAddress=null;setOrderDate(todayKey());$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");const regs=loadRegions();$("region").value=regs[0]||"";FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
 function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`<div class="rrow"><span>${esc(n)}</span><b>× ${o.items[n]}</b></div>`).join("");$("receipt").innerHTML=`<h2>手工拌面 配送单</h2><div>${esc(o.address)}</div>${o.phone?`<div>${esc(o.phone)}</div>`:""}<div class="line"></div>${itemHtml}<div class="line"></div><div class="rrow"><b>合计</b><b>${o.total} 包</b></div><div>区域：${esc(o.region)}</div>${o.note?`<div>备注：${esc(o.note)}</div>`:""}<div>订单号：${esc(o.id)}</div><div>时间：${esc(o.time)}</div>`}
@@ -499,8 +512,24 @@ function repeatOrder(o){clearForm();setOrderDate(todayKey());$("address").value=
 function updateStatus(date,id,status){if(!STATUSES.includes(status))return;const orders=loadOrders(),idx=orders.findIndex(o=>o.date===date&&o.id===id);if(idx<0)return;orders[idx].status=status;saveOrders(orders);renderAll()}
 function statusSelect(o,source){return`<select class="status-select" data-status-date="${esc(o.date)}" data-status-id="${esc(o.id)}" data-status-source="${source}">${STATUSES.map(s=>`<option ${orderStatus(o)===s?"selected":""}>${s}</option>`).join("")}</select>`}
 function bindStatusSelects(){document.querySelectorAll("[data-status-id]").forEach(el=>el.onchange=()=>updateStatus(el.dataset.statusDate,el.dataset.statusId,el.value))}
+function addressGroupKey(address){
+ const s=String(address||"").replace(/\s+/g,"").replace(/[～~]/g,"");
+ if(!s)return"";
+ const building=/^(.+?)(?:(?:[一二三四五六七八九十百零〇两\d]+)(?:栋|幢|号楼|座|楼))/u.exec(s);
+ if(building&&building[1])return building[1];
+ const unit=/^(.+?)(?:(?:[一二三四五六七八九十百零〇两\d]+)(?:单元|梯))/u.exec(s);
+ if(unit&&unit[1])return unit[1];
+ const number=/^([^0-9０-９]{3,12})[0-9０-９]+/u.exec(s);
+ if(number&&number[1])return number[1];
+ return s;
+}
 function renderToday(){
- const orders=loadOrders().filter(o=>o.date===todayKey()).sort((a,b)=>(a.region||"").localeCompare(b.region||"","zh-CN")||a.id.localeCompare(b.id));
+ const orders=loadOrders().filter(o=>o.date===todayKey()).sort((a,b)=>
+   (a.region||"").localeCompare(b.region||"","zh-CN") ||
+   addressGroupKey(a.address).localeCompare(addressGroupKey(b.address),"zh-CN") ||
+   String(a.address||"").localeCompare(String(b.address||""),"zh-CN") ||
+   String(a.id||"").localeCompare(String(b.id||""))
+ );
  $("todayHouseholds").textContent=orders.length;
  $("todayBags").textContent=orders.reduce((sum,o)=>sum+(Number(o.total)||0),0);
  $("todayRegions").textContent=new Set(orders.map(o=>o.region)).size;
@@ -513,11 +542,16 @@ function renderToday(){
  <td><span class="badge">${esc(o.region||"")}</span></td>
  <td class="qty-flavor-cell"><b class="qty-top">${o.total||0} 包</b><div class="flavor-bottom">${esc(itemsText(o))}</div></td>
  <td>${o.note?esc(o.note):'<span class="small">—</span>'}</td>
- <td><div class="row-actions"><button class="btn secondary" data-edit-date="${esc(o.date)}" data-edit-id="${esc(o.id)}">修改</button><button class="btn danger" data-del-date="${esc(o.date)}" data-del-id="${esc(o.id)}">删除</button></div></td>
+ <td><div class="row-actions"><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
  </tr>`).join(""):`<tr><td colspan="6" class="small">今天还没有订单</td></tr>`;
  bindOrderActions();
 }
-function bindOrderActions(){document.querySelectorAll("[data-edit-id]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.editDate&&x.id===b.dataset.editId);if(o)startEditing(o)});document.querySelectorAll("[data-print-id]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.printDate&&x.id===b.dataset.printId);if(o){buildReceipt(o);window.print()}});document.querySelectorAll("[data-del-id]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>!(x.date===b.dataset.delDate&&x.id===b.dataset.delId));saveOrders(all);rebuildCustomerStats();renderAll()});document.querySelectorAll("[data-repeat-date]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.date===b.dataset.repeatDate&&x.id===b.dataset.repeatId);if(o)repeatOrder(o)})}
+function bindOrderActions(){
+ document.querySelectorAll("[data-edit-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.editUid);if(o)startEditing(o)});
+ document.querySelectorAll("[data-print-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.printUid);if(o){buildReceipt(o);window.print()}});
+ document.querySelectorAll("[data-del-uid]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>x.uid!==b.dataset.delUid);saveOrders(all);rebuildCustomerStats();renderAll()});
+ document.querySelectorAll("[data-repeat-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.repeatUid);if(o)repeatOrder(o)});
+}
 
 function renderHistory(){
  const date=$("historyDate").value,kw=$("historySearch").value.trim().toLowerCase();
@@ -529,12 +563,12 @@ function renderHistory(){
  <td>${esc(o.date)}</td><td>${esc(o.id)}</td>
  <td>${esc(o.address)}${o.phone?`<div class="small">${esc(o.phone)}</div>`:""}</td>
  <td>${esc(o.region||"")}</td><td>${esc(itemsText(o))}</td>
- <td><div class="row-actions"><button class="btn secondary" data-repeat-date="${esc(o.date)}" data-repeat-id="${esc(o.id)}">按此单下单</button><button class="btn secondary" data-edit-date="${esc(o.date)}" data-edit-id="${esc(o.id)}">修改</button><button class="btn danger" data-del-date="${esc(o.date)}" data-del-id="${esc(o.id)}">删除</button></div></td>
+ <td><div class="row-actions"><button class="btn secondary" data-repeat-uid="${esc(o.uid)}">按此单下单</button><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
  </tr>`).join(""):`<tr><td colspan="6" class="small">没有符合条件的订单</td></tr>`;
  bindOrderActions();
 }
 
-function renderCustomers(){const cs=loadCustomers(),kw=$("customerSearch")?.value.trim().toLowerCase()||"",addresses=Object.keys(cs).filter(a=>!kw||a.toLowerCase().includes(kw)||String(cs[a].phone||"").includes(kw));$("addressList").innerHTML=Object.keys(cs).map(a=>`<option value="${esc(a)}"></option>`).join("");$("customerTable").innerHTML=addresses.length?addresses.sort().map(a=>{const c=cs[a],last=getLastOrder(a);return`<tr><td>${esc(a)}</td><td>${esc(c.phone||"")}</td><td>${esc(c.region||"")}</td><td>${c.orders||0}</td><td>${last?`${esc(last.date)}<div class="small">${esc(itemsText(last))}</div>`:""}</td><td>${last?`<button class="btn secondary" data-repeat-date="${esc(last.date)}" data-repeat-id="${esc(last.id)}">再次下单</button>`:""}</td></tr>`}).join(""):`<tr><td colspan="6" class="small">暂无地址资料</td></tr>`;bindOrderActions()}
+function renderCustomers(){const cs=loadCustomers(),kw=$("customerSearch")?.value.trim().toLowerCase()||"",addresses=Object.keys(cs).filter(a=>!kw||a.toLowerCase().includes(kw)||String(cs[a].phone||"").includes(kw));$("addressList").innerHTML=Object.keys(cs).map(a=>`<option value="${esc(a)}"></option>`).join("");$("customerTable").innerHTML=addresses.length?addresses.sort().map(a=>{const c=cs[a],last=getLastOrder(a);return`<tr><td>${esc(a)}</td><td>${esc(c.phone||"")}</td><td>${esc(c.region||"")}</td><td>${c.orders||0}</td><td>${last?`${esc(last.date)}<div class="small">${esc(itemsText(last))}</div>`:""}</td><td>${last?`<button class="btn secondary" data-repeat-uid="${esc(last.uid)}">再次下单</button>`:""}</td></tr>`}).join(""):`<tr><td colspan="6" class="small">暂无地址资料</td></tr>`;bindOrderActions()}
 
 function renderBackupStatus(){const raw=localStorage.getItem("noodleLastBackup");if(!raw){$("backupStatus").className="notice warning";$("backupStatus").textContent="还没有记录到备份，建议现在先导出一份。";return}const d=new Date(raw),days=Math.floor((Date.now()-d.getTime())/86400000);if(!Number.isFinite(days)){localStorage.removeItem("noodleLastBackup");return renderBackupStatus()}$("backupStatus").className=days>=7?"notice warning":"notice success";$("backupStatus").textContent=`上次备份：${d.toLocaleString("zh-CN")}（${days}天前）${days>=7?"，建议重新备份。":""}`}
 async function exportTodayOrders(){
