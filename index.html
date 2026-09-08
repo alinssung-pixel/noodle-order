@@ -12,7 +12,7 @@ h1{font-size:28px;margin:0 0 6px}.sub{color:var(--muted);margin-bottom:18px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab{border:1px solid var(--line);background:#fff;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:15px}.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .page{display:none}.page.active{display:block}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
 label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px}input,select,textarea{width:100%;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff}
-textarea{min-height:76px;resize:vertical}.flavor{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee}.flavor:last-child{border-bottom:0}.step{display:flex;align-items:center;gap:10px}.step button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:22px;cursor:pointer}.qty{width:34px;text-align:center;font-weight:700}
+textarea{min-height:76px;resize:vertical}.flavor{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee;min-height:64px}.flavor:last-child{border-bottom:0}.step{display:flex;align-items:center;gap:10px;flex:0 0 auto}.step button{width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:22px;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.qty{width:48px!important;min-width:48px!important;height:42px!important;min-height:42px!important;padding:0 4px!important;text-align:center;font-size:18px!important;font-weight:700;border:1px solid var(--line);border-radius:10px;background:#fff;-moz-appearance:textfield}.qty::-webkit-outer-spin-button,.qty::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .total{display:flex;justify-content:space-between;font-size:20px;font-weight:700;padding-top:14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:10px;padding:11px 14px;font-size:14px;cursor:pointer}.primary{background:var(--accent);color:#fff}.secondary{background:#fff;border:1px solid var(--line)}.danger{background:#fff;border:1px solid #f0a0a0;color:#a00}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}.kpi b{font-size:28px;display:block;margin-top:6px}
 table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden}th,td{padding:11px 10px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:middle}th{background:#fafafa}.small{font-size:13px;color:var(--muted)}.row-actions{display:flex;gap:6px;flex-wrap:wrap}.row-actions button{margin:0}.receipt{display:none}.notice{margin-top:12px;color:var(--muted);font-size:14px}.warning{color:var(--warn);font-weight:700}.success{color:var(--ok);font-weight:700}.badge{display:inline-block;background:#eee;border-radius:999px;padding:3px 8px;font-size:12px}.status-select{font-size:13px;padding:7px 8px;min-width:92px}.toolbar{display:grid;grid-template-columns:180px 1fr;gap:10px;margin-bottom:14px}.delivery-region{margin:0 0 16px}.delivery-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:8px;border-bottom:1px solid #eee}.delivery-order{padding:12px 0;border-bottom:1px dashed #ddd}.delivery-order:last-child{border-bottom:0}.delivery-address{font-weight:700;font-size:16px}.items-inline{margin-top:5px;font-size:14px}.last-order{display:none;margin-top:12px;padding:12px;border:1px solid #e2d4b2;background:#fffaf0;border-radius:12px}.today-flavors{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.mini{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}.mini b{font-size:20px}.nowrap{white-space:nowrap}
@@ -277,21 +277,21 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   .order-date-text{font-size:16px}
 }
 
-
-/* V14 手机导航优化：底部仅保留5个高频入口，数据管理移到右上角 */
-.app-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.app-head h1{margin-top:0}
-.data-entry-btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:11px;padding:9px 12px;font-size:14px;font-weight:700;white-space:nowrap;cursor:pointer}
-.data-entry-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* 导航优化：底部仅保留5项，数据管理移到标题右上角 */
+.app-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.app-head h1{margin:0}
+.data-top-btn{border:1px solid var(--line);background:#fff;color:#333;border-radius:10px;padding:8px 11px;font-size:14px;font-weight:650;white-space:nowrap;cursor:pointer}
 @media(max-width:760px){
-  .app-head{align-items:flex-start}
-  .app-head h1{margin-bottom:4px}
-  .app-head .sub{font-size:12px;line-height:1.35;padding-right:2px}
-  .data-entry-btn{margin-top:0;min-height:40px;padding:8px 10px;font-size:13.5px;border-radius:10px}
+  .app-head{margin-bottom:12px}
+  .app-head h1{font-size:25px}
+  .data-top-btn{font-size:14px;padding:8px 10px}
   .tabs{grid-template-columns:repeat(5,1fr)!important}
-  .tab{min-height:50px!important;margin:3px 2px;padding:6px 1px!important;border-radius:12px!important;font-size:14.5px!important}
-  .tab.active{box-shadow:0 2px 8px rgba(17,24,39,.12)}
+  .flavor{min-height:68px}
+  .step{gap:8px}
+  .step button{width:44px;height:44px}
+  .qty{width:50px!important;min-width:50px!important;height:44px!important;min-height:44px!important;font-size:19px!important}
 }
+
 </style>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -303,7 +303,10 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 </head>
 <body>
 <div class="wrap">
-  <div class="app-head"><div><h1>手工拌面订单系统</h1><div class="sub">接单 · 今日订单 · 历史订单 · 常用地址 · 现场积分</div></div><button type="button" id="openDataPage" class="data-entry-btn">数据管理</button></div>
+  <div class="app-head">
+    <h1>手工拌面订单系统</h1>
+    <button class="data-top-btn" id="openData" type="button">数据管理</button>
+  </div>
 
   <div class="tabs">
     <button class="tab active" data-page="order">接单</button>
@@ -492,7 +495,22 @@ function renderRegionList(){const regions=loadRegions();$("regionList").innerHTM
  document.querySelectorAll("[data-region-del]").forEach(btn=>btn.onclick=()=>{let regs=loadRegions(),i=Number(btn.dataset.regionDel),old=regs[i];if(regs.length<=1){$("regionMsg").textContent="至少要保留一个配送区域。";return}if(!confirm(`确定删除“${old}”吗？`))return;regs.splice(i,1);saveRegions(regs);const fallback=regs[0];const cs=loadCustomers();Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=fallback});saveCustomers(cs);renderRegionSelect(fallback);renderRegionList();renderAll();$("regionMsg").textContent=`已删除“${old}”，相关常用地址暂时改到“${fallback}”。`})}
 function addRegion(){const name=$("newRegion").value.trim();if(!name){$("regionMsg").textContent="请输入区域名称。";return}const regs=loadRegions();if(regs.includes(name)){$("regionMsg").textContent="这个区域已经存在。";return}regs.push(name);saveRegions(regs);$("newRegion").value="";renderRegionSelect(name);renderRegionList();$("regionMsg").textContent=`已新增“${name}”。`}
 
-function renderFlavors(){const box=$("flavorBox");box.innerHTML="";FLAVORS.forEach(name=>{const r=document.createElement("div");r.className="flavor";r.innerHTML=`<span>${name}</span><div class="step"><button type="button">−</button><span class="qty">${qty[name]}</span><button type="button">+</button></div>`;const bs=r.querySelectorAll("button");bs[0].onclick=()=>{qty[name]=Math.max(0,qty[name]-1);renderFlavors()};bs[1].onclick=()=>{qty[name]=Math.min(99,qty[name]+1);renderFlavors()};box.appendChild(r)});$("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+qty[n],0)}
+function updateOrderTotal(){$("orderTotal").textContent=FLAVORS.reduce((s,n)=>s+(Number(qty[n])||0),0)}
+function renderFlavors(){
+ const box=$("flavorBox");box.innerHTML="";
+ FLAVORS.forEach(name=>{
+  const r=document.createElement("div");r.className="flavor";
+  r.innerHTML=`<span>${name}</span><div class="step"><button type="button" aria-label="${name}减1">−</button><input class="qty" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="99" value="${Number(qty[name])||0}" aria-label="${name}数量"><button type="button" aria-label="${name}加1">+</button></div>`;
+  const bs=r.querySelectorAll("button"),inp=r.querySelector(".qty");
+  const setVal=v=>{v=Math.max(0,Math.min(99,Math.floor(Number(v)||0)));qty[name]=v;inp.value=v;updateOrderTotal()};
+  bs[0].onclick=()=>setVal((Number(qty[name])||0)-1);
+  bs[1].onclick=()=>setVal((Number(qty[name])||0)+1);
+  inp.oninput=()=>{let raw=inp.value.replace(/\D/g,"");if(raw!==inp.value)inp.value=raw;if(raw===""){qty[name]=0;updateOrderTotal();return}let v=Math.max(0,Math.min(99,Number(raw)||0));qty[name]=v;if(String(v)!==raw)inp.value=v;updateOrderTotal()};
+  inp.onblur=()=>setVal(inp.value);
+  box.appendChild(r);
+ });
+ updateOrderTotal();
+}
 function selectedOrderDate(){return $("orderDate")?.value||todayKey()}
 function orderId(dateKey=selectedOrderDate()){const p=String(dateKey).split("-"),date=(p[1]||"")+(p[2]||"");const nums=loadOrders().filter(o=>o.date===dateKey).map(o=>{const m=String(o.id||"").match(/-(\d+)$/);return m?Number(m[1]):0});const next=(nums.length?Math.max(...nums):0)+1;return date+"-"+String(next).padStart(3,"0")}
 function currentOrder(){const date=selectedOrderDate();return{
@@ -636,9 +654,9 @@ function exportBackup(){const payload={app:"手工拌面订单系统",version:3,
 function importBackup(){const f=$("importFile").files[0];if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!Array.isArray(data.orders)||typeof data.customers!=="object")throw new Error("格式错误");if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;saveOrders(data.orders);saveCustomers(data.customers||{});if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);if(Array.isArray(data.onsitePoints))saveOnsitePoints(data.onsitePoints);rebuildCustomerStats();renderRegionSelect();clearForm();renderRegionList();renderAll();$("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`}catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}};reader.readAsText(f,"utf-8")}
 
 function renderAll(){renderToday();renderHistory();renderCustomers();renderOnsitePoints();renderBackupStatus()}
-function showPage(page,tabBtn=null){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$("openDataPage")?.classList.toggle("active",page==="data");if(tabBtn)tabBtn.classList.add("active");$(page).classList.add("active");if(page==="history")renderHistory();if(page==="points")renderOnsitePoints()}
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>showPage(b.dataset.page,b));
-$("openDataPage").onclick=()=>showPage("data");
+function switchPage(page){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.page===page));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(page).classList.add("active");if(page==="history")renderHistory();if(page==="points")renderOnsitePoints()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchPage(b.dataset.page));
+$("openData").onclick=()=>switchPage("data");
 function updateAddressClear(){
  const hasText=$("address").value.length>0;
  $("clearAddress").classList.toggle("show",hasText);
@@ -667,7 +685,7 @@ document.querySelectorAll(".point-quick").forEach(b=>b.onclick=()=>{$("pointQty"
    btn.classList.remove("save-feedback");
    btn.textContent="仅保存";
  },900);
-};$("clearForm").onclick=clearForm;$("cancelEdit").onclick=()=>stopEditing(true);$("exportData").onclick=exportBackup;$("importData").onclick=importBackup;$("addRegion").onclick=addRegion;$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus()};$("historyDate").oninput=renderHistory;$("historySearch").oninput=renderHistory;$("customerSearch").oninput=renderCustomers;
+};$("clearForm").onclick=clearForm;$("cancelEdit").onclick=()=>stopEditing(true);$("exportData").onclick=exportBackup;$("importData").onclick=importBackup;$("addRegion").onclick=addRegion;$("manageRegions").onclick=()=>{switchPage("data");$("newRegion").focus()};$("historyDate").oninput=renderHistory;$("historySearch").oninput=renderHistory;$("customerSearch").oninput=renderCustomers;
 $("pointDate").value=todayKey();$("pointFilterDate").value=todayKey();setOrderDate(todayKey());$("orderDate").addEventListener("change",syncOrderDateText);$("exportDate").value=todayKey();renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
 
 </script>
