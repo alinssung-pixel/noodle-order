@@ -289,13 +289,14 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 <body>
 <div class="wrap">
   <h1>手工拌面订单系统</h1>
-  <div class="sub">接单 · 今日订单 · 历史订单 · 常用地址 · 数据管理</div>
+  <div class="sub">接单 · 今日订单 · 历史订单 · 常用地址 · 现场积分 · 数据管理</div>
 
   <div class="tabs">
     <button class="tab active" data-page="order">接单</button>
     <button class="tab" data-page="today">今日订单</button>
     <button class="tab" data-page="history">历史订单</button>
     <button class="tab" data-page="customers">常用地址</button>
+    <button class="tab" data-page="points">现场积分</button>
     <button class="tab" data-page="data">数据管理</button>
   </div>
 
@@ -370,6 +371,32 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
       <div class="small" style="margin-bottom:10px">输入曾经购买过的完整地址，会自动带出电话、区域和上次订单。</div>
       <input id="customerSearch" placeholder="搜索常用地址" style="margin-bottom:12px">
       <div class="hscroll"><table class="wide-customers"><thead><tr><th>地址</th><th>电话</th><th>区域</th><th>累计订单</th><th>上次购买</th><th>操作</th></tr></thead><tbody id="customerTable"></tbody></table></div>
+    </div>
+  </section>
+
+
+  <section id="points" class="page">
+    <div class="card">
+      <h3 style="margin-top:0">现场积分登记</h3>
+      <div class="small" style="margin-bottom:12px">只记录需要积分的微信客户。老客户填微信备注地址；新客户可先填微信昵称。这里不计算销售额，也不重复计入销量。</div>
+      <label>客户微信备注 / 昵称</label>
+      <input id="pointCustomer" placeholder="例如：东岩苑4栋1303 / 小幸运" autocomplete="off">
+      <label>购买日期</label><input id="pointDate" type="date">
+      <label>现场购买包数</label>
+      <div class="actions" style="margin-top:6px">
+        <button class="btn secondary point-quick" type="button" data-q="1">1包</button>
+        <button class="btn secondary point-quick" type="button" data-q="2">2包</button>
+        <button class="btn secondary point-quick" type="button" data-q="3">3包</button>
+      </div>
+      <input id="pointQty" type="number" min="1" step="1" inputmode="numeric" placeholder="也可以直接输入包数" style="margin-top:8px">
+      <div class="actions"><button class="btn primary" id="savePoint" type="button">保存现场积分</button></div>
+      <div class="notice" id="pointMsg">每购买1包记录1积分；最终积分以 Mac 总账为准。</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><h3 style="margin:0">现场积分记录</h3><input id="pointFilterDate" type="date" style="width:auto;min-width:150px"></div>
+      <div class="hscroll" style="margin-top:12px"><table><thead><tr><th>时间</th><th>客户</th><th>购买</th><th>积分</th><th>操作</th></tr></thead><tbody id="pointTable"></tbody></table></div>
+      <div class="actions"><button class="btn primary" id="exportPoints" type="button">导出当天现场积分</button></div>
+      <div class="notice" id="pointExportMsg"></div>
     </div>
   </section>
 
@@ -570,6 +597,19 @@ function renderHistory(){
 
 function renderCustomers(){const cs=loadCustomers(),kw=$("customerSearch")?.value.trim().toLowerCase()||"",addresses=Object.keys(cs).filter(a=>!kw||a.toLowerCase().includes(kw)||String(cs[a].phone||"").includes(kw));$("addressList").innerHTML=Object.keys(cs).map(a=>`<option value="${esc(a)}"></option>`).join("");$("customerTable").innerHTML=addresses.length?addresses.sort().map(a=>{const c=cs[a],last=getLastOrder(a);return`<tr><td>${esc(a)}</td><td>${esc(c.phone||"")}</td><td>${esc(c.region||"")}</td><td>${c.orders||0}</td><td>${last?`${esc(last.date)}<div class="small">${esc(itemsText(last))}</div>`:""}</td><td>${last?`<button class="btn secondary" data-repeat-uid="${esc(last.uid)}">再次下单</button>`:""}</td></tr>`}).join(""):`<tr><td colspan="6" class="small">暂无地址资料</td></tr>`;bindOrderActions()}
 
+const loadOnsitePoints=()=>safeParse("noodleOnsitePoints",[]);
+const saveOnsitePoints=a=>localStorage.setItem("noodleOnsitePoints",JSON.stringify(a));
+function pointTimeText(v){return String(v||"").slice(11,16)||"—"}
+function renderOnsitePoints(){
+ const day=$("pointFilterDate")?.value||todayKey();if($("pointFilterDate"))$("pointFilterDate").value=day;
+ let a=loadOnsitePoints().filter(v=>v.date===day).sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+ $("pointTable").innerHTML=a.length?a.map(v=>`<tr><td>${esc(pointTimeText(v.createdAt))}</td><td><b>${esc(v.customerLabel)}</b></td><td>${v.qty}包</td><td><b>+${v.points}</b></td><td><div class="row-actions"><button class="btn secondary" data-point-edit="${esc(v.uid)}">修改</button><button class="btn danger" data-point-del="${esc(v.uid)}">删除</button></div></td></tr>`).join(""):`<tr><td colspan="5" class="small">当天还没有现场积分记录</td></tr>`;
+ document.querySelectorAll("[data-point-del]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这条现场积分记录吗？"))return;saveOnsitePoints(loadOnsitePoints().filter(v=>v.uid!==b.dataset.pointDel));renderOnsitePoints()});
+ document.querySelectorAll("[data-point-edit]").forEach(b=>b.onclick=()=>{let a=loadOnsitePoints(),v=a.find(x=>x.uid===b.dataset.pointEdit);if(!v)return;let q=prompt("修改现场购买包数：",v.qty);if(q===null)return;q=Number(q);if(!Number.isFinite(q)||q<=0)return alert("请输入正确的包数");v.qty=Math.floor(q);v.points=v.qty;saveOnsitePoints(a);renderOnsitePoints()});
+}
+function saveOnsitePoint(){let label=$("pointCustomer").value.trim(),q=Math.floor(Number($("pointQty").value)),date=$("pointDate").value||todayKey();if(!label)return alert("请填写客户微信备注或昵称");if(!Number.isFinite(q)||q<=0)return alert("请填写购买包数");let a=loadOnsitePoints();a.push({uid:"onsite-"+newUid(),date,createdAt:new Date().toISOString(),customerLabel:label,qty:q,points:q,source:"iPhone现场"});saveOnsitePoints(a);$("pointCustomer").value="";$("pointQty").value="";$("pointMsg").textContent=`✓ 已记录：${label}，${q}包，+${q}积分`;$("pointFilterDate").value=date;renderOnsitePoints();$("pointCustomer").focus()}
+async function exportOnsitePoints(){let date=$("pointFilterDate").value||todayKey(),events=loadOnsitePoints().filter(v=>v.date===date),msg=$("pointExportMsg");if(!events.length){msg.textContent=`${date} 没有现场积分记录可以导出。`;return}let payload={app:"手工拌面订单系统",type:"onsite-points",version:1,date,exportedAt:new Date().toISOString(),source:"iPhone",events},text=JSON.stringify(payload,null,2),filename=`现场积分_${date}.json`;try{let file=new File([text],filename,{type:"application/json"});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({title:`${date} 现场积分`,files:[file]});msg.textContent=`${events.length} 条现场积分已调出分享菜单。`;return}}catch(e){}let blob=new Blob([text],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),800);msg.textContent=`已导出 ${events.length} 条现场积分记录。`}
+
 function renderBackupStatus(){const raw=localStorage.getItem("noodleLastBackup");if(!raw){$("backupStatus").className="notice warning";$("backupStatus").textContent="还没有记录到备份，建议现在先导出一份。";return}const d=new Date(raw),days=Math.floor((Date.now()-d.getTime())/86400000);if(!Number.isFinite(days)){localStorage.removeItem("noodleLastBackup");return renderBackupStatus()}$("backupStatus").className=days>=7?"notice warning":"notice success";$("backupStatus").textContent=`上次备份：${d.toLocaleString("zh-CN")}（${days}天前）${days>=7?"，建议重新备份。":""}`}
 async function exportTodayOrders(){
  const date=$("exportDate")?.value||todayKey(),orders=loadOrders().filter(o=>o.date===date),msg=$("transferMsg");
@@ -579,11 +619,11 @@ async function exportTodayOrders(){
  try{const file=new File([text],filename,{type:"application/json"});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({title:`${date} 拌面订单`,files:[file]});msg.textContent=`${date} 的 ${orders.length} 张订单已调出分享菜单。`;return}}catch(e){}
  const blob=new Blob([text],{type:"application/json"}),url=URL.createObjectURL(blob),x=document.createElement("a");x.href=url;x.download=filename;document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(url),800);msg.textContent=`已导出 ${date} 的 ${orders.length} 张订单。`;
 }
-function exportBackup(){const payload={app:"手工拌面订单系统",version:3,exportedAt:new Date().toISOString(),orders:loadOrders(),customers:loadCustomers(),regions:loadRegions()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`拌面订单备份_${todayKey()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);localStorage.setItem("noodleLastBackup",new Date().toISOString());renderBackupStatus();$("backupMsg").textContent="备份文件已导出。请保存到你容易找到的位置。"}
-function importBackup(){const f=$("importFile").files[0];if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!Array.isArray(data.orders)||typeof data.customers!=="object")throw new Error("格式错误");if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;saveOrders(data.orders);saveCustomers(data.customers||{});if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);rebuildCustomerStats();renderRegionSelect();clearForm();renderRegionList();renderAll();$("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`}catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}};reader.readAsText(f,"utf-8")}
+function exportBackup(){const payload={app:"手工拌面订单系统",version:3,exportedAt:new Date().toISOString(),orders:loadOrders(),customers:loadCustomers(),regions:loadRegions(),onsitePoints:loadOnsitePoints()};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`拌面订单备份_${todayKey()}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);localStorage.setItem("noodleLastBackup",new Date().toISOString());renderBackupStatus();$("backupMsg").textContent="备份文件已导出。请保存到你容易找到的位置。"}
+function importBackup(){const f=$("importFile").files[0];if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!Array.isArray(data.orders)||typeof data.customers!=="object")throw new Error("格式错误");if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;saveOrders(data.orders);saveCustomers(data.customers||{});if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);if(Array.isArray(data.onsitePoints))saveOnsitePoints(data.onsitePoints);rebuildCustomerStats();renderRegionSelect();clearForm();renderRegionList();renderAll();$("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`}catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}};reader.readAsText(f,"utf-8")}
 
-function renderAll(){renderToday();renderHistory();renderCustomers();renderBackupStatus()}
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.page).classList.add("active");if(b.dataset.page==="history")renderHistory()});
+function renderAll(){renderToday();renderHistory();renderCustomers();renderOnsitePoints();renderBackupStatus()}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.page).classList.add("active");if(b.dataset.page==="history")renderHistory();if(b.dataset.page==="points")renderOnsitePoints()});
 function updateAddressClear(){
  const hasText=$("address").value.length>0;
  $("clearAddress").classList.toggle("show",hasText);
@@ -600,7 +640,7 @@ $("clearAddress").onclick=()=>{
  updateAddressClear();
  $("address").focus();
 };
-$("exportToday").onclick=exportTodayOrders;$("copyLastOrder").onclick=copyLastOrder;$("savePrint").onclick=()=>saveOrder(true);$("saveOnly").onclick=()=>{
+document.querySelectorAll(".point-quick").forEach(b=>b.onclick=()=>{$("pointQty").value=b.dataset.q});$("savePoint").onclick=saveOnsitePoint;$("exportPoints").onclick=exportOnsitePoints;$("pointFilterDate").oninput=renderOnsitePoints;$("exportToday").onclick=exportTodayOrders;$("copyLastOrder").onclick=copyLastOrder;$("savePrint").onclick=()=>saveOrder(true);$("saveOnly").onclick=()=>{
  const btn=$("saveOnly");
  btn.classList.remove("save-feedback");
  btn.textContent="仅保存";
@@ -613,7 +653,7 @@ $("exportToday").onclick=exportTodayOrders;$("copyLastOrder").onclick=copyLastOr
    btn.textContent="仅保存";
  },900);
 };$("clearForm").onclick=clearForm;$("cancelEdit").onclick=()=>stopEditing(true);$("exportData").onclick=exportBackup;$("importData").onclick=importBackup;$("addRegion").onclick=addRegion;$("manageRegions").onclick=()=>{document.querySelector('[data-page="data"]').click();$("newRegion").focus()};$("historyDate").oninput=renderHistory;$("historySearch").oninput=renderHistory;$("customerSearch").oninput=renderCustomers;
-setOrderDate(todayKey());$("orderDate").addEventListener("change",syncOrderDateText);$("exportDate").value=todayKey();renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
+$("pointDate").value=todayKey();$("pointFilterDate").value=todayKey();setOrderDate(todayKey());$("orderDate").addEventListener("change",syncOrderDateText);$("exportDate").value=todayKey();renderRegionSelect();renderRegionList();renderFlavors();rebuildCustomerStats();updateAddressClear();renderAll();
 
 </script>
 
