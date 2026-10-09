@@ -489,7 +489,7 @@ const saveCustomers=x=>localStorage.setItem("noodleCustomers",JSON.stringify(x))
 const orderStatus=o=>STATUSES.includes(o.status)?o.status:"待制作";
 const itemsText=o=>FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`${n}×${o.items[n]}`).join("、")||"无";
 
-function renderRegionSelect(selected){const regions=loadRegions();const current=selected||$("region").value||regions[0]||"其他";$("region").innerHTML=regions.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");if(regions.includes(current))$("region").value=current}
+function renderRegionSelect(selected){const regions=loadRegions();const current=selected!==undefined?selected:$("region").value;$("region").innerHTML=`<option value="">请选择配送区域</option>`+regions.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");$("region").value=regions.includes(current)?current:""}
 function renderRegionList(){const regions=loadRegions();$("regionList").innerHTML=regions.length?regions.map((r,i)=>`<div class="flavor"><span>${esc(r)}</span><div class="row-actions"><button class="btn secondary" type="button" data-region-edit="${i}">修改</button><button class="btn danger" type="button" data-region-del="${i}">删除</button></div></div>`).join(""):`<div class="small">暂无配送区域</div>`;
  document.querySelectorAll("[data-region-edit]").forEach(btn=>btn.onclick=()=>{const regs=loadRegions(),i=Number(btn.dataset.regionEdit),old=regs[i],next=prompt("修改配送区域名称：",old);if(next===null)return;const name=next.trim();if(!name){$("regionMsg").textContent="区域名称不能为空。";return}if(regs.some((x,idx)=>idx!==i&&x===name)){$("regionMsg").textContent="这个区域已经存在。";return}regs[i]=name;saveRegions(regs);const cs=loadCustomers();Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=name});saveCustomers(cs);const orders=loadOrders();orders.forEach(o=>{if(o.region===old)o.region=name});saveOrders(orders);renderRegionSelect(name);renderRegionList();renderAll();$("regionMsg").textContent=`已将“${old}”改为“${name}”。`});
  document.querySelectorAll("[data-region-del]").forEach(btn=>btn.onclick=()=>{let regs=loadRegions(),i=Number(btn.dataset.regionDel),old=regs[i];if(regs.length<=1){$("regionMsg").textContent="至少要保留一个配送区域。";return}if(!confirm(`确定删除“${old}”吗？`))return;regs.splice(i,1);saveRegions(regs);const fallback=regs[0];const cs=loadCustomers();Object.keys(cs).forEach(k=>{if(cs[k].region===old)cs[k].region=fallback});saveCustomers(cs);renderRegionSelect(fallback);renderRegionList();renderAll();$("regionMsg").textContent=`已删除“${old}”，相关常用地址暂时改到“${fallback}”。`})}
@@ -551,20 +551,22 @@ function saveOrder(doPrint){
    orders.push(o);saveOrders(orders);rememberCustomer(o);buildReceipt(o);
    $("msg").textContent=`订单 ${o.id} 已保存。`;
  }
- FLAVORS.forEach(n=>qty[n]=0);
- renderFlavors();
+ const savedMessage=$("msg").textContent;
+ resetOrderFieldsAfterSave();
+ $("msg").textContent=savedMessage;
  renderAll();
  if(doPrint)window.print();
  return true
 }
 function startEditing(o){editingKey={uid:o.uid};setOrderDate(o.date||todayKey());$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"其他");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;window.scrollTo({top:0,behavior:"smooth"})}
 function stopEditing(clear=true){editingKey=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";if(clear)clearForm()}
-function clearForm(){editingKey=null;lastOrderForAddress=null;setOrderDate(todayKey());$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");const regs=loadRegions();$("region").value=regs[0]||"";FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
+function resetOrderFieldsAfterSave(){lastOrderForAddress=null;["phone","address","note"].forEach(id=>$(id).value="");renderRegionSelect("");FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";if(typeof updateAddressClear==="function")updateAddressClear()}
+function clearForm(){editingKey=null;lastOrderForAddress=null;setOrderDate(todayKey());$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");renderRegionSelect("");FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
 function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`<div class="rrow"><span>${esc(n)}</span><b>× ${o.items[n]}</b></div>`).join("");$("receipt").innerHTML=`<h2>手工拌面 配送单</h2><div>${esc(o.address)}</div>${o.phone?`<div>${esc(o.phone)}</div>`:""}<div class="line"></div>${itemHtml}<div class="line"></div><div class="rrow"><b>合计</b><b>${o.total} 包</b></div><div>区域：${esc(o.region)}</div>${o.note?`<div>备注：${esc(o.note)}</div>`:""}<div>订单号：${esc(o.id)}</div><div>时间：${esc(o.time)}</div>`}
 
 function getLastOrder(address){return loadOrders().filter(o=>o.address===address).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0]||null}
 function showLastOrder(address){const c=loadCustomers()[address];if(c){$("phone").value=c.phone||"";const regs=loadRegions();if(regs.includes(c.region))$("region").value=c.region}lastOrderForAddress=getLastOrder(address);if(lastOrderForAddress){$("lastOrderText").textContent=`${lastOrderForAddress.date}，${itemsText(lastOrderForAddress)}`;$("lastOrderBox").style.display="block"}else{$("lastOrderBox").style.display="none"}}
-function copyLastOrder(){if(!lastOrderForAddress)return;const o=lastOrderForAddress;FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);if(o.note)$("note").value=o.note;renderFlavors();$("msg").textContent="已按上次购买数量填写，可以继续调整。"}
+function copyLastOrder(){if(!lastOrderForAddress)return;const o=lastOrderForAddress;FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();$("msg").textContent="已按上次购买数量填写，可以继续调整。"}
 function repeatOrder(o){clearForm();setOrderDate(todayKey());$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();showLastOrder(o.address);document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，新订单可继续修改后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
 
 function updateStatus(date,id,status){if(!STATUSES.includes(status))return;const orders=loadOrders(),idx=orders.findIndex(o=>o.date===date&&o.id===id);if(idx<0)return;orders[idx].status=status;saveOrders(orders);renderAll()}
