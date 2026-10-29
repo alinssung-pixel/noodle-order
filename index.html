@@ -292,7 +292,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
   .qty{width:50px!important;min-width:50px!important;height:44px!important;min-height:44px!important;font-size:19px!important}
 }
 
-/* V16：订单金额编辑区、配送区域验证与今日订单复制功能 */
+/* V16：仅新增订单金额编辑区、配送区域验证和今日订单复制按钮 */
 .pricing-panel{margin-top:14px;padding:13px 14px;border:1px solid #e3e3e7;border-radius:12px;background:#fcfcfd}
 .pricing-panel .pricing-title{font-size:16px;font-weight:700;margin-bottom:9px}
 .pricing-line{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;margin:7px 0}
@@ -308,6 +308,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 #region.region-required{border:2px solid #c43636;background:#fff9f9}
 .region-validation{display:none;color:#b42323;font-size:13px;font-weight:650;margin-top:6px}
 .region-validation.show{display:block}
+.wide-today .btn-copy-details{border:1px solid #9ca8b8;color:#273a52;background:#fff}
 .wide-today .btn-copy-order{border:1px solid #9ca8b8;color:#273a52;background:#fff}
 @media(max-width:760px){.pricing-check{font-size:15px}.pricing-panel{padding:12px}.pricing-entry .btn{font-size:14px;min-height:48px}}
 </style>
@@ -349,7 +350,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
           <button class="btn secondary" id="copyLastOrder" type="button" style="margin-top:9px">按上次订单填写</button>
         </div>
         <label>电话（选填）</label><input id="phone" placeholder="可不填" inputmode="tel">
-        <label>客户称呼（选填）</label><input id="customerName" placeholder="例如：王女士；不填则复制时省略" autocomplete="off">
+        <label>客户称呼（选填）</label><input id="customerName" placeholder="例如：王女士" autocomplete="off">
         <label>配送区域</label>
         <div style="display:flex;gap:8px;align-items:center">
           <select id="region" style="flex:1"></select>
@@ -532,11 +533,42 @@ function validSavedPrice(o){
  const p=o?.pricing;
  return p&&Number.isSafeInteger(p.baseCents)&&p.baseCents>=0&&Number.isSafeInteger(p.finalCents)&&p.finalCents>=0&&Number.isSafeInteger(p.autoDiscountCents)&&p.autoDiscountCents>=0&&p.finalCents<=100000000;
 }
-// 用于发给配送同事的纯文字订单；不含价格，也不依赖旧订单是否保存了金额。
+function copyDetailsText(o){
+ if(!validSavedPrice(o))return null;
+ const p=o.pricing;
+ const lines=FLAVORS.filter(n=>Number(o.items?.[n])>0).map(n=>{
+  const count=Number(o.items[n]);const unit=Number.isSafeInteger(p.unitPricesCents?.[n])?p.unitPricesCents[n]:FLAVOR_PRICES_CENTS[n];return `${n} × ${count}：${displayCents(count*unit)}元`;
+ });
+ const change=p.finalCents-p.baseCents;
+ if(change<0)lines.push(`优惠：-${displayCents(-change)}元`);
+ else if(change>0)lines.push(`金额调整：+${displayCents(change)}元`);
+ lines.push(`合计：${o.total}包，${displayCents(p.finalCents)}元`);
+ return lines.join("\n");
+}
+async function copyOrderDetails(o,button){
+ const details=copyDetailsText(o);
+ if(!details){
+  alert("这张旧订单没有保存实际应收金额。请先点‘修改’，确认价格并保存，再复制明细。 ");
+  return;
+ }
+ let copied=false;
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(details);copied=true}}catch(e){}
+ if(!copied){
+  const t=document.createElement("textarea");t.value=details;t.setAttribute("readonly","");t.style.cssText="position:fixed;left:-9999px;top:0";document.body.appendChild(t);t.select();t.setSelectionRange(0,t.value.length);
+  try{copied=document.execCommand("copy")}catch(e){}
+  t.remove();
+ }
+ if(!copied){
+  // Keep a selectable fallback rather than incorrectly claiming clipboard success.
+  prompt("无法自动复制，请长按或全选下方内容复制：",details);return;
+ }
+ if(button){const before=button.textContent;button.textContent="✓ 已复制";setTimeout(()=>{if(button.isConnected)button.textContent=before},1000)}
+}
+// 新增：复制给同事的配送订单。和上方原有核实金额的“复制明细”相互独立。
 function copyOrderText(o){
- const lines=["【手工拌面订单】"];
- const customerName=String(o.customerName||"").trim();
- if(customerName)lines.push(`客户：${customerName}`);
+ const lines=[];
+ const customer=String(o.customerName||"").trim();
+ if(customer)lines.push(`客户：${customer}`);
  lines.push(`地址：${String(o.address||"").trim()}`);
  const phone=String(o.phone||"").trim();
  if(phone)lines.push(`电话：${phone}`);
@@ -564,12 +596,10 @@ async function copyOrderForColleague(o,button){
   try{copied=document.execCommand("copy")}catch(e){}
   t.remove();
  }
- if(!copied){
-  prompt("自动复制失败，请长按或全选下方文字复制：",details);
-  return;
- }
+ if(!copied){prompt("无法自动复制，请长按或全选下方内容复制：",details);return}
  if(button){const before=button.textContent;button.textContent="✓ 已复制";setTimeout(()=>{if(button.isConnected)button.textContent=before},1000)}
 }
+
 const STATUSES=["待制作","待配送","已完成"];
 const qty=Object.fromEntries(FLAVORS.map(x=>[x,0]));
 let editingKey=null,lastOrderForAddress=null;
@@ -746,12 +776,13 @@ function renderToday(){
  <td><span class="badge">${esc(o.region||"")}</span></td>
  <td class="qty-flavor-cell"><b class="qty-top">${o.total||0} 包</b><div class="flavor-bottom">${esc(itemsText(o))}</div></td>
  <td>${o.note?esc(o.note):'<span class="small">—</span>'}</td>
- <td><div class="row-actions"><button class="btn secondary btn-copy-order" data-copy-uid="${esc(o.uid)}">复制订单</button><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
+ <td><div class="row-actions"><button class="btn secondary btn-copy-details" data-copy-uid="${esc(o.uid)}">复制明细</button><button class="btn secondary btn-copy-order" data-share-uid="${esc(o.uid)}">复制订单</button><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
  </tr>`).join(""):`<tr><td colspan="6" class="small">今天还没有订单</td></tr>`;
  bindOrderActions();
 }
 function bindOrderActions(){
- document.querySelectorAll("[data-copy-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.copyUid);if(o)copyOrderForColleague(o,b)});
+ document.querySelectorAll("[data-copy-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.copyUid);if(o)copyOrderDetails(o,b)});
+ document.querySelectorAll("[data-share-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.shareUid);if(o)copyOrderForColleague(o,b)});
  document.querySelectorAll("[data-edit-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.editUid);if(o)startEditing(o)});
  document.querySelectorAll("[data-print-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.printUid);if(o){buildReceipt(o);window.print()}});
  document.querySelectorAll("[data-del-uid]").forEach(b=>b.onclick=()=>{if(!confirm("确定删除这张订单吗？"))return;let all=loadOrders();all=all.filter(x=>x.uid!==b.dataset.delUid);saveOrders(all);rebuildCustomerStats();renderAll()});
