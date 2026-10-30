@@ -350,7 +350,6 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
           <button class="btn secondary" id="copyLastOrder" type="button" style="margin-top:9px">按上次订单填写</button>
         </div>
         <label>电话（选填）</label><input id="phone" placeholder="可不填" inputmode="tel">
-        <label>客户称呼（选填）</label><input id="customerName" placeholder="例如：王女士" autocomplete="off">
         <label>配送区域</label>
         <div style="display:flex;gap:8px;align-items:center">
           <select id="region" style="flex:1"></select>
@@ -567,12 +566,9 @@ async function copyOrderDetails(o,button){
 // 新增：复制给同事的配送订单。和上方原有核实金额的“复制明细”相互独立。
 function copyOrderText(o){
  const lines=[];
- const customer=String(o.customerName||"").trim();
- if(customer)lines.push(`客户：${customer}`);
  lines.push(`地址：${String(o.address||"").trim()}`);
  const phone=String(o.phone||"").trim();
  if(phone)lines.push(`电话：${phone}`);
- lines.push("");
  let count=0;
  FLAVORS.forEach(n=>{
   const q=Number(o.items?.[n])||0;
@@ -580,7 +576,7 @@ function copyOrderText(o){
  });
  lines.push(`合计：${count}包`);
  const note=String(o.note||"").trim();
- if(note)lines.push("",`备注：${note}`);
+ if(note)lines.push(`备注：${note}`);
  return lines.join("\n");
 }
 async function copyOrderForColleague(o,button){
@@ -663,7 +659,6 @@ function currentOrder(){const date=selectedOrderDate();return{
       date:date,
       time:new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),
       phone:$("phone").value.trim(),
-      customerName:$("customerName").value.trim(),
       address:$("address").value.trim(),
       region:$("region").value,
       note:$("note").value.trim(),
@@ -720,28 +715,28 @@ function saveOrder(doPrint){
  return true
 }
 function startEditing(o){
- editingKey={uid:o.uid};setOrderDate(o.date||todayKey());$("phone").value=o.phone||"";$("customerName").value=o.customerName||"";$("address").value=o.address||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";
+ editingKey={uid:o.uid};setOrderDate(o.date||todayKey());$("phone").value=o.phone||"";$("address").value=o.address||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";
  FLAVORS.forEach(n=>qty[n]=(o.items&&o.items[n])||0);
  $("pairDiscount").checked=!!o.pricing?.pairDiscount;
  $("actualAmount").value=validSavedPrice(o)&&o.pricing.manualCents!==null&&o.pricing.manualCents!==undefined?displayCents(o.pricing.manualCents):"";
  manualPriceNeedsReview=false;
  renderFlavors();$("editNotice").style.display="block";$("editingId").textContent=o.id;$("cancelEdit").style.display="inline-block";
- document.querySelector('[data-page="order"]').click();showLastOrder(o.address);$("customerName").value=o.customerName||"";renderRegionSelect(o.region||"");
+ document.querySelector('[data-page="order"]').click();showLastOrder(o.address);renderRegionSelect(o.region||"");
  if(!validSavedPrice(o))$("msg").textContent=`旧订单 ${o.id} 未保存金额，请核对价格后再保存。`;
  else $("msg").textContent=`已载入订单 ${o.id}，修改后保存即可。`;
  window.scrollTo({top:0,behavior:"smooth"});
 }
 function stopEditing(clear=true){editingKey=null;$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";if(clear)clearForm()}
-function resetOrderFieldsAfterSave(){lastOrderForAddress=null;["phone","customerName","address","note"].forEach(id=>$(id).value="");renderRegionSelect("");resetPricingFields();FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";if(typeof updateAddressClear==="function")updateAddressClear()}
-function clearForm(){editingKey=null;lastOrderForAddress=null;setOrderDate(todayKey());$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","customerName","address","note"].forEach(id=>$(id).value="");renderRegionSelect("");resetPricingFields();FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
+function resetOrderFieldsAfterSave(){lastOrderForAddress=null;["phone","address","note"].forEach(id=>$(id).value="");renderRegionSelect("");resetPricingFields();FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";if(typeof updateAddressClear==="function")updateAddressClear()}
+function clearForm(){editingKey=null;lastOrderForAddress=null;setOrderDate(todayKey());$("editNotice").style.display="none";$("editingId").textContent="";$("cancelEdit").style.display="none";["phone","address","note"].forEach(id=>$(id).value="");renderRegionSelect("");resetPricingFields();FLAVORS.forEach(n=>qty[n]=0);renderFlavors();$("lastOrderBox").style.display="none";$("msg").textContent="已清空当前订单。"}
 function buildReceipt(o){let itemHtml=FLAVORS.filter(n=>(o.items?.[n]||0)>0).map(n=>`<div class="rrow"><span>${esc(n)}</span><b>× ${o.items[n]}</b></div>`).join("");$("receipt").innerHTML=`<h2>手工拌面 配送单</h2><div>${esc(o.address)}</div>${o.phone?`<div>${esc(o.phone)}</div>`:""}<div class="line"></div>${itemHtml}<div class="line"></div><div class="rrow"><b>合计</b><b>${o.total} 包</b></div><div>区域：${esc(o.region)}</div>${o.note?`<div>备注：${esc(o.note)}</div>`:""}<div>订单号：${esc(o.id)}</div><div>时间：${esc(o.time)}</div>`}
 
 function getLastOrder(address){return loadOrders().filter(o=>o.address===address).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0]||null}
-function showLastOrder(address){const c=loadCustomers()[address];if(c){$("phone").value=c.phone||"";$("customerName").value=c.customerName||"";const regs=loadRegions();if(regs.includes(c.region))$("region").value=c.region}lastOrderForAddress=getLastOrder(address);if(lastOrderForAddress){$("lastOrderText").textContent=`${lastOrderForAddress.date}，${itemsText(lastOrderForAddress)}`;$("lastOrderBox").style.display="block"}else{$("lastOrderBox").style.display="none"}}
+function showLastOrder(address){const c=loadCustomers()[address];if(c){$("phone").value=c.phone||"";const regs=loadRegions();if(regs.includes(c.region))$("region").value=c.region}lastOrderForAddress=getLastOrder(address);if(lastOrderForAddress){$("lastOrderText").textContent=`${lastOrderForAddress.date}，${itemsText(lastOrderForAddress)}`;$("lastOrderBox").style.display="block"}else{$("lastOrderBox").style.display="none"}}
 function copyLastOrder(){if(!lastOrderForAddress)return;const o=lastOrderForAddress;FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);renderFlavors();$("msg").textContent="已按上次购买数量填写，可以继续调整。"}
-function repeatOrder(o){clearForm();setOrderDate(todayKey());$("address").value=o.address||"";$("phone").value=o.phone||"";$("customerName").value=o.customerName||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);
+function repeatOrder(o){clearForm();setOrderDate(todayKey());$("address").value=o.address||"";$("phone").value=o.phone||"";renderRegionSelect(o.region||"");$("note").value=o.note||"";FLAVORS.forEach(n=>qty[n]=o.items?.[n]||0);
  $("pairDiscount").checked=!!o.pricing?.pairDiscount;$("actualAmount").value="";manualPriceNeedsReview=false;
- renderFlavors();showLastOrder(o.address);$("customerName").value=o.customerName||"";renderRegionSelect(o.region||"");document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，金额已按本单口味重新计算，请核对后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
+ renderFlavors();showLastOrder(o.address);renderRegionSelect(o.region||"");document.querySelector('[data-page="order"]').click();$("msg").textContent=`已复制 ${o.date} 的订单内容，金额已按本单口味重新计算，请核对后保存。`;window.scrollTo({top:0,behavior:"smooth"})}
 
 function updateStatus(date,id,status){if(!STATUSES.includes(status))return;const orders=loadOrders(),idx=orders.findIndex(o=>o.date===date&&o.id===id);if(idx<0)return;orders[idx].status=status;saveOrders(orders);renderAll()}
 function statusSelect(o,source){return`<select class="status-select" data-status-date="${esc(o.date)}" data-status-id="${esc(o.id)}" data-status-source="${source}">${STATUSES.map(s=>`<option ${orderStatus(o)===s?"selected":""}>${s}</option>`).join("")}</select>`}
@@ -851,7 +846,6 @@ $("address").addEventListener("input",e=>{
 $("clearAddress").onclick=()=>{
  $("address").value="";
  $("phone").value="";
- $("customerName").value="";
  renderRegionSelect("");
  $("lastOrderBox").style.display="none";
  lastOrderForAddress=null;
