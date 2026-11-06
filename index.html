@@ -311,6 +311,21 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 .wide-today .btn-copy-details{border:1px solid #9ca8b8;color:#273a52;background:#fff}
 .wide-today .btn-copy-order{border:1px solid #9ca8b8;color:#273a52;background:#fff}
 @media(max-width:760px){.pricing-check{font-size:15px}.pricing-panel{padding:12px}.pricing-entry .btn{font-size:14px;min-height:48px}}
+/* V16 配送标记：状态和按钮靠近地址，减少今日订单横向滚动 */
+.delivery-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.delivery-counts{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px}
+.delivery-counts b{font-size:19px;color:#111827;margin:0 3px}
+.delivery-filters{display:inline-flex;gap:3px;padding:3px;background:#f1f2f4;border:1px solid #e1e3e6;border-radius:11px}
+.delivery-filter{border:0;border-radius:8px;background:transparent;color:#555;padding:7px 11px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.delivery-filter.active{color:#fff;background:#111827}
+.delivery-label{margin-top:7px;font-size:13px;font-weight:650;line-height:1.4;color:#8a5700}
+.delivery-label.delivered{color:#176b3a}
+.delivery-action{margin-top:7px!important;font-size:13px!important;padding:7px 10px!important;min-height:38px!important;white-space:nowrap}
+.delivery-action.undo{color:#176b3a;border-color:#a4cab0}
+.delivery-row-done{background:#f7fbf8}
+.delivery-history-label{margin-top:4px;font-size:12px;color:#6e6e73}
+.delivery-history-label.delivered{color:#176b3a}
+@media(max-width:760px){.delivery-toolbar{align-items:flex-start;gap:8px}.delivery-counts{gap:12px;font-size:13px}.delivery-counts b{font-size:18px}.delivery-filters{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}.delivery-filter{min-height:40px}.delivery-action{min-height:42px!important}}
 </style>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -394,6 +409,14 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
     </div>
     <div class="card">
       <h3 style="margin-top:0">今日订单</h3>
+      <div class="delivery-toolbar">
+        <div class="delivery-counts"><span>待配送 <b id="deliveryPendingCount">0</b> 单</span><span>已送达 <b id="deliveryDoneCount">0</b> 单</span></div>
+        <div class="delivery-filters" role="group" aria-label="配送状态筛选">
+          <button type="button" class="delivery-filter active" data-delivery-filter="all" aria-pressed="true">全部</button>
+          <button type="button" class="delivery-filter" data-delivery-filter="pending" aria-pressed="false">待配送</button>
+          <button type="button" class="delivery-filter" data-delivery-filter="delivered" aria-pressed="false">已送达</button>
+        </div>
+      </div>
       <div class="hscroll today-scroll"><table class="wide-today"><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>数量 / 口味</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
     </div>
   </section>
@@ -597,6 +620,22 @@ async function copyOrderForColleague(o,button){
 }
 
 const STATUSES=["待制作","待配送","已完成"];
+// 独立配送标记，不覆盖历史版本的制作状态或金额字段。
+let deliveryFilter="all";
+const isDelivered=o=>typeof o?.deliveredAt==="string"&&o.deliveredAt.length>0;
+function deliveredTimeText(o){
+ if(!isDelivered(o))return "";
+ const d=new Date(o.deliveredAt);
+ if(Number.isNaN(d.getTime()))return "时间未记录";
+ return `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function setDelivered(uid,done){
+ const orders=loadOrders(),i=orders.findIndex(x=>x.uid===uid);
+ if(i<0)return;
+ if(done){orders[i].deliveredAt=new Date().toISOString()}
+ else{delete orders[i].deliveredAt}
+ saveOrders(orders);renderToday();renderHistory();
+}
 const qty=Object.fromEntries(FLAVORS.map(x=>[x,0]));
 let editingKey=null,lastOrderForAddress=null;
 const $=id=>document.getElementById(id);
@@ -694,6 +733,9 @@ function saveOrder(doPrint){
    if(idx<0){$("msg").textContent="找不到要修改的订单。";return false}
    const old=orders[idx];
    o.uid=old.uid;o.id=old.id;o.time=old.time;
+   // 编辑地址或口味时必须保留该订单此前的送达标记与时间。
+   if(isDelivered(old))o.deliveredAt=old.deliveredAt;
+   if(old.status!==undefined)o.status=old.status;
    orders[idx]=o;
    saveOrders(orders);rebuildCustomerStats();buildReceipt(o);
    $("msg").textContent=`订单 ${o.id} 已修改并保存。`;
@@ -753,29 +795,45 @@ function addressGroupKey(address){
  return s;
 }
 function renderToday(){
- const orders=loadOrders().filter(o=>o.date===todayKey()).sort((a,b)=>
+ // 原有今日销量、口味汇总保持全部订单统计，不因配送筛选而改变。
+ const all=loadOrders().filter(o=>o.date===todayKey());
+ const pending=all.filter(o=>!isDelivered(o)).length;
+ $("todayHouseholds").textContent=all.length;
+ $("todayBags").textContent=all.reduce((sum,o)=>sum+(Number(o.total)||0),0);
+ $("todayRegions").textContent=new Set(all.map(o=>o.region)).size;
+ $("deliveryPendingCount").textContent=pending;
+ $("deliveryDoneCount").textContent=all.length-pending;
+ const totals=Object.fromEntries(FLAVORS.map(n=>[n,0]));
+ all.forEach(o=>FLAVORS.forEach(n=>totals[n]+=o.items?.[n]||0));
+ $("todayFlavorCards").innerHTML=FLAVORS.map(n=>`<div class="flavor-chip"><span>${n}</span><b>${totals[n]}</b></div>`).join("");
+ document.querySelectorAll("[data-delivery-filter]").forEach(b=>{
+  const active=b.dataset.deliveryFilter===deliveryFilter;
+  b.classList.toggle("active",active);b.setAttribute("aria-pressed",active?"true":"false");
+ });
+ const orders=all.filter(o=>deliveryFilter==="all"||(deliveryFilter==="delivered"?isDelivered(o):!isDelivered(o))).sort((a,b)=>
+   Number(isDelivered(a))-Number(isDelivered(b)) ||
    (a.region||"").localeCompare(b.region||"","zh-CN") ||
    addressGroupKey(a.address).localeCompare(addressGroupKey(b.address),"zh-CN") ||
    String(a.address||"").localeCompare(String(b.address||""),"zh-CN") ||
    String(a.id||"").localeCompare(String(b.id||""))
  );
- $("todayHouseholds").textContent=orders.length;
- $("todayBags").textContent=orders.reduce((sum,o)=>sum+(Number(o.total)||0),0);
- $("todayRegions").textContent=new Set(orders.map(o=>o.region)).size;
- const totals=Object.fromEntries(FLAVORS.map(n=>[n,0]));
- orders.forEach(o=>FLAVORS.forEach(n=>totals[n]+=o.items?.[n]||0));
- $("todayFlavorCards").innerHTML=FLAVORS.map(n=>`<div class="flavor-chip"><span>${n}</span><b>${totals[n]}</b></div>`).join("");
- $("todayTable").innerHTML=orders.length?orders.map(o=>`<tr>
+ $("todayTable").innerHTML=orders.length?orders.map(o=>{
+ const done=isDelivered(o);
+ return `<tr class="${done?"delivery-row-done":""}">
  <td class="nowrap">${esc(o.id)}</td>
- <td><b>${esc(o.address)}</b>${o.phone?`<div class="small" style="margin-top:4px">${esc(o.phone)}</div>`:""}</td>
+ <td><b>${esc(o.address)}</b>${o.phone?`<div class="small" style="margin-top:4px">${esc(o.phone)}</div>`:""}
+ <div class="delivery-label ${done?"delivered":""}">${done?"✓ 已送达 · "+esc(deliveredTimeText(o)):"待配送"}</div>
+ <button type="button" class="btn ${done?"secondary undo":"primary"} delivery-action" data-delivery-uid="${esc(o.uid)}" data-delivery-done="${done?"0":"1"}">${done?"撤销送达":"标记已送达"}</button></td>
  <td><span class="badge">${esc(o.region||"")}</span></td>
  <td class="qty-flavor-cell"><b class="qty-top">${o.total||0} 包</b><div class="flavor-bottom">${esc(itemsText(o))}</div></td>
  <td>${o.note?esc(o.note):'<span class="small">—</span>'}</td>
  <td><div class="row-actions"><button class="btn secondary btn-copy-details" data-copy-uid="${esc(o.uid)}">复制明细</button><button class="btn secondary btn-copy-order" data-share-uid="${esc(o.uid)}">复制订单</button><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
- </tr>`).join(""):`<tr><td colspan="6" class="small">今天还没有订单</td></tr>`;
+ </tr>`;
+ }).join(""):`<tr><td colspan="6" class="small">${all.length?"该状态下没有订单":"今天还没有订单"}</td></tr>`;
  bindOrderActions();
 }
 function bindOrderActions(){
+ document.querySelectorAll("[data-delivery-uid]").forEach(b=>b.onclick=()=>setDelivered(b.dataset.deliveryUid,b.dataset.deliveryDone==="1"));
  document.querySelectorAll("[data-copy-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.copyUid);if(o)copyOrderDetails(o,b)});
  document.querySelectorAll("[data-share-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.shareUid);if(o)copyOrderForColleague(o,b)});
  document.querySelectorAll("[data-edit-uid]").forEach(b=>b.onclick=()=>{const o=loadOrders().find(x=>x.uid===b.dataset.editUid);if(o)startEditing(o)});
@@ -792,7 +850,8 @@ function renderHistory(){
  $("historyCount").textContent=`共找到 ${orders.length} 张订单，${orders.reduce((sum,o)=>sum+(o.total||0),0)} 包`;
  $("historyTable").innerHTML=orders.length?orders.map(o=>`<tr>
  <td>${esc(o.date)}</td><td>${esc(o.id)}</td>
- <td>${esc(o.address)}${o.phone?`<div class="small">${esc(o.phone)}</div>`:""}</td>
+ <td>${esc(o.address)}${o.phone?`<div class="small">${esc(o.phone)}</div>`:""}
+ <div class="delivery-history-label ${isDelivered(o)?"delivered":""}">${isDelivered(o)?"✓ 已送达 · "+esc(deliveredTimeText(o)):"未标记送达"}</div></td>
  <td>${esc(o.region||"")}</td><td>${esc(itemsText(o))}</td>
  <td><div class="row-actions"><button class="btn secondary" data-repeat-uid="${esc(o.uid)}">按此单下单</button><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
  </tr>`).join(""):`<tr><td colspan="6" class="small">没有符合条件的订单</td></tr>`;
@@ -827,8 +886,11 @@ function exportBackup(){const payload={app:"手工拌面订单系统",version:3,
 function importBackup(){const f=$("importFile").files[0];if(!f){$("restoreMsg").textContent="请先选择备份文件。";return}const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!data||!Array.isArray(data.orders)||typeof data.customers!=="object")throw new Error("格式错误");if(!confirm(`将恢复 ${data.orders.length} 张订单，并覆盖当前数据。确定继续吗？`))return;saveOrders(data.orders);saveCustomers(data.customers||{});if(Array.isArray(data.regions)&&data.regions.length)saveRegions(data.regions);if(Array.isArray(data.onsitePoints))saveOnsitePoints(data.onsitePoints);rebuildCustomerStats();renderRegionSelect();clearForm();renderRegionList();renderAll();$("restoreMsg").textContent=`恢复完成：${data.orders.length} 张订单。`}catch(e){$("restoreMsg").textContent="恢复失败：不是有效的本系统备份文件。"}};reader.readAsText(f,"utf-8")}
 
 function renderAll(){renderToday();renderHistory();renderCustomers();renderOnsitePoints();renderBackupStatus()}
-function switchPage(page){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.page===page));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(page).classList.add("active");if(page==="history")renderHistory();if(page==="points")renderOnsitePoints()}
+function switchPage(page){document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.page===page));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(page).classList.add("active");if(page==="today"){renderToday();const sc=document.querySelector(".today-scroll");if(sc)sc.scrollLeft=0}if(page==="history")renderHistory();if(page==="points")renderOnsitePoints()}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchPage(b.dataset.page));
+document.querySelectorAll("[data-delivery-filter]").forEach(b=>b.onclick=()=>{deliveryFilter=b.dataset.deliveryFilter;renderToday()});
+// iPhone 从后台回到前台时刷新当天列表，避免隔日仍显示前一天。
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderToday()});
 $("openData").onclick=()=>switchPage("data");
 function updateAddressClear(){
  const hasText=$("address").value.length>0;
