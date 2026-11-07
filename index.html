@@ -326,6 +326,72 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 .delivery-history-label{margin-top:4px;font-size:12px;color:#6e6e73}
 .delivery-history-label.delivered{color:#176b3a}
 @media(max-width:760px){.delivery-toolbar{align-items:flex-start;gap:8px}.delivery-counts{gap:12px;font-size:13px}.delivery-counts b{font-size:18px}.delivery-filters{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}.delivery-filter{min-height:40px}.delivery-action{min-height:42px!important}}
+
+/* V16 今日订单紧凑配送列表：只涉及显示，不改变订单计算、状态或复制业务逻辑 */
+#today .delivery-toolbar{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:0 0 14px}
+#today .delivery-counts{font-size:15px;gap:18px}
+#today .delivery-counts b{font-size:17px;color:inherit}
+#today .delivery-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;background:transparent;border:0;padding:0;gap:4px;border-radius:14px}
+#today .delivery-filter{font-size:15px;font-weight:600;min-height:42px;border-radius:999px;color:#6e6e73;padding:8px 6px;background:transparent}
+#today .delivery-filter.active{background:#f0f1f3;color:#16181c}
+#today .today-compact-list{display:block;width:100%;overflow:visible}
+#today .today-estate{margin-top:13px}
+#today .today-estate:first-child{margin-top:0}
+#today .today-estate > summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 13px;background:#f2f3f5;border-radius:13px;list-style:none;cursor:pointer;user-select:none;-webkit-user-select:none}
+#today .today-estate > summary::-webkit-details-marker{display:none}
+#today .estate-heading{display:flex;align-items:center;gap:7px;min-width:0;font-size:16px;font-weight:700;line-height:1.35}
+#today .estate-heading .estate-name{min-width:0;overflow-wrap:anywhere}
+#today .estate-heading svg{flex-shrink:0;color:#50545a}
+#today .estate-meta{display:flex;align-items:center;gap:8px;flex-shrink:0;font-size:13px;color:#5e636b;white-space:nowrap}
+#today .estate-arrow{font-size:15px;line-height:1;transform:rotate(-90deg);transition:transform .12s}
+#today .today-estate[open] .estate-arrow{transform:rotate(0)}
+#today .today-entry{padding:12px 7px 13px;border-bottom:1px solid #e4e6ea}
+#today .today-estate .today-entry:last-child{border-bottom:0}
+#today .today-entry-main{display:grid;grid-template-columns:minmax(0,42%) minmax(0,58%);gap:0;align-items:start}
+#today .today-entry-info{min-width:0;padding-right:10px;display:flex;flex-direction:column;gap:4px}
+#today .today-entry-id{font-size:12px;color:#777b83;line-height:1.25}
+#today .today-entry-address{font-size:16px;color:#1d1d1f;font-weight:700;overflow-wrap:anywhere;line-height:1.35}
+#today .today-entry-phone{font-size:13px;color:#363a40;overflow-wrap:anywhere;line-height:1.25}
+#today .today-entry-note{font-size:13px;color:#26292f;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+#today .today-entry-products{min-width:0;padding-left:4px}
+#today .today-entry-top{display:flex;justify-content:space-between;align-items:center;gap:6px;min-height:35px}
+#today .today-entry-total{font-size:16px;font-weight:700;color:#17191c;white-space:nowrap}
+#today .today-deliver-btn{padding:6px 10px!important;font-size:13px!important;min-height:34px!important;border:1px solid #d3d6da!important;border-radius:999px!important;background:#fff!important;color:#202329!important;line-height:1.1;white-space:nowrap;flex-shrink:0}
+#today .today-deliver-btn.undo{color:#176b3a!important;border-color:#b5d2bd!important}
+#today .today-entry-flavors{display:flex;flex-wrap:wrap;align-items:flex-start;gap:5px 12px;margin-top:4px;font-size:13px;line-height:1.4;color:#1e2024}
+#today .today-entry-flavor{white-space:nowrap;font-weight:500}
+#today .today-delivered-at{margin-top:4px;font-size:11px;color:#66716b}
+#today .today-entry-actions{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-top:10px}
+#today .today-copy-actions,#today .today-manage-actions{display:flex;gap:6px;align-items:center;min-width:0}
+#today .today-copy-actions .btn{display:inline-flex;align-items:center;justify-content:center;padding:7px 9px!important;min-height:36px!important;font-size:12.5px!important;border:1px solid #d4d7dd!important;border-radius:999px!important;background:#fff!important;color:#2d3035!important;white-space:nowrap}
+#today .today-manage-actions .btn{padding:7px 5px!important;min-height:36px!important;font-size:12.5px!important;border:0!important;background:transparent!important;color:#4b4e54!important;white-space:nowrap}
+#today .today-manage-actions .btn.danger{color:#b91c1c!important}
+#today .today-empty{padding:20px 12px;color:#7a7e85;text-align:center;font-size:14px}
+@media(max-width:760px){
+ #today .card{padding:14px 12px}
+ #today .delivery-counts{gap:16px}
+ #today .today-estate > summary{padding:9px 10px}
+ #today .estate-heading{font-size:15px}
+ #today .estate-meta{font-size:12px;gap:5px}
+ #today .today-entry{padding:10px 3px 12px}
+ #today .today-entry-main{grid-template-columns:minmax(0,43%) minmax(0,57%)}
+ #today .today-entry-info{padding-right:5px}
+ #today .today-entry-address{font-size:15px}
+ #today .today-entry-products{padding-left:4px}
+ #today .today-entry-total{font-size:15px}
+ #today .today-entry-flavors{gap:4px 9px;font-size:12.5px}
+ #today .today-deliver-btn{min-height:36px!important;padding:7px 8px!important;font-size:12px!important}
+ #today .today-copy-actions .btn{font-size:12px!important;padding:7px 8px!important}
+ #today .today-manage-actions .btn{font-size:12px!important;padding:7px 4px!important}
+}
+@media(max-width:375px){
+ #today .today-entry-main{grid-template-columns:minmax(0,43%) minmax(0,57%)}
+ #today .today-entry-actions{gap:3px}
+ #today .today-copy-actions,#today .today-manage-actions{gap:3px}
+ #today .today-copy-actions .btn{font-size:11px!important;padding:6px!important}
+ #today .today-manage-actions .btn{font-size:11px!important;padding:6px 2px!important}
+}
+
 </style>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -417,7 +483,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
           <button type="button" class="delivery-filter" data-delivery-filter="delivered" aria-pressed="false">已送达</button>
         </div>
       </div>
-      <div class="hscroll today-scroll"><table class="wide-today"><thead><tr><th>订单号</th><th>地址</th><th>区域</th><th>数量 / 口味</th><th>备注</th><th>操作</th></tr></thead><tbody id="todayTable"></tbody></table></div>
+      <div id="todayTable" class="today-compact-list" role="list" aria-label="今日配送订单"></div>
     </div>
   </section>
 
@@ -622,6 +688,7 @@ async function copyOrderForColleague(o,button){
 const STATUSES=["待制作","待配送","已完成"];
 // 独立配送标记，不覆盖历史版本的制作状态或金额字段。
 let deliveryFilter="all";
+const collapsedTodayGroups=new Set();
 const isDelivered=o=>typeof o?.deliveredAt==="string"&&o.deliveredAt.length>0;
 function deliveredTimeText(o){
  if(!isDelivered(o))return "";
@@ -817,19 +884,43 @@ function renderToday(){
    String(a.address||"").localeCompare(String(b.address||""),"zh-CN") ||
    String(a.id||"").localeCompare(String(b.id||""))
  );
- $("todayTable").innerHTML=orders.length?orders.map(o=>{
- const done=isDelivered(o);
- return `<tr class="${done?"delivery-row-done":""}">
- <td class="nowrap">${esc(o.id)}</td>
- <td><b>${esc(o.address)}</b>${o.phone?`<div class="small" style="margin-top:4px">${esc(o.phone)}</div>`:""}
- <div class="delivery-label ${done?"delivered":""}">${done?"✓ 已送达 · "+esc(deliveredTimeText(o)):"待配送"}</div>
- <button type="button" class="btn ${done?"secondary undo":"primary"} delivery-action" data-delivery-uid="${esc(o.uid)}" data-delivery-done="${done?"0":"1"}">${done?"撤销送达":"标记已送达"}</button></td>
- <td><span class="badge">${esc(o.region||"")}</span></td>
- <td class="qty-flavor-cell"><b class="qty-top">${o.total||0} 包</b><div class="flavor-bottom">${esc(itemsText(o))}</div></td>
- <td>${o.note?esc(o.note):'<span class="small">—</span>'}</td>
- <td><div class="row-actions"><button class="btn secondary btn-copy-details" data-copy-uid="${esc(o.uid)}">复制明细</button><button class="btn secondary btn-copy-order" data-share-uid="${esc(o.uid)}">复制订单</button><button class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></td>
- </tr>`;
- }).join(""):`<tr><td colspan="6" class="small">${all.length?"该状态下没有订单":"今天还没有订单"}</td></tr>`;
+  // 按既有排序后的订单聚合相同配送区域/小区，分组仅改变展示顺序，不写入订单。
+  const groupMap=new Map();
+  orders.forEach(o=>{
+    const area=String(o.region||"未分区").trim()||"未分区";
+    const full=String(o.address||"").trim();
+    const groupName=addressGroupKey(full);
+    const recognized=!!groupName&&groupName!==full.replace(/\s+/g,"").replace(/[～~]/g,"");
+    // 不确定属于哪个小区的地址不强行与其他地址合并。
+    const estate=recognized?groupName:"其他地址";
+    const groupKey=area+"\u0001"+(recognized?groupName:"single:"+String(o.uid||o.id));
+    if(!groupMap.has(groupKey))groupMap.set(groupKey,{key:groupKey,area,estate,orders:[]});
+    groupMap.get(groupKey).orders.push(o);
+  });
+  const groups=[...groupMap.values()];
+  $("todayTable").innerHTML=groups.length?groups.map(g=>{
+    const n=g.orders.length, bags=g.orders.reduce((sum,o)=>sum+(Number(o.total)||0),0);
+    return `<details class="today-estate" data-group-key="${esc(g.key)}" ${collapsedTodayGroups.has(g.key)?"":"open"}>
+      <summary><span class="estate-heading"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.6"/></svg><span class="estate-name">${esc(g.area)} · ${esc(g.estate)}</span></span><span class="estate-meta">${n}单 · 共${bags}包 <span class="estate-arrow">⌄</span></span></summary>
+      <div class="today-estate-entries">${g.orders.map(o=>{
+        const done=isDelivered(o);
+        const full=String(o.address||"").trim();
+        const short=g.estate!=="其他地址"&&full.startsWith(g.estate)?full.slice(g.estate.length).trim()||full:full;
+        const flavors=FLAVORS.filter(f=>(Number(o.items?.[f])||0)>0).map(f=>`<span class="today-entry-flavor">${esc(f)} × ${Number(o.items[f])}</span>`).join("");
+        return `<article class="today-entry" role="listitem">
+          <div class="today-entry-main">
+            <div class="today-entry-info"><div class="today-entry-id">${esc(o.id)}</div><div class="today-entry-address">${esc(short)}</div>${o.phone?`<div class="today-entry-phone">${esc(o.phone)}</div>`:""}${o.note?`<div class="today-entry-note">备注：${esc(o.note)}</div>`:""}</div>
+            <div class="today-entry-products"><div class="today-entry-top"><span class="today-entry-total">共${Number(o.total)||0}包</span><button type="button" class="btn today-deliver-btn ${done?"undo":""}" data-delivery-uid="${esc(o.uid)}" data-delivery-done="${done?"0":"1"}" aria-label="${done?"撤销已送达":"标记已送达"}">${done?"✓ 已送达":"✓ 送达"}</button></div><div class="today-entry-flavors">${flavors}</div>${done?`<div class="today-delivered-at">${esc(deliveredTimeText(o))}</div>`:""}</div>
+          </div>
+          <div class="today-entry-actions"><div class="today-copy-actions"><button type="button" class="btn secondary" data-share-uid="${esc(o.uid)}">复制订单</button><button type="button" class="btn secondary" data-copy-uid="${esc(o.uid)}">复制明细</button></div><div class="today-manage-actions"><button type="button" class="btn secondary" data-edit-uid="${esc(o.uid)}">修改</button><button type="button" class="btn danger" data-del-uid="${esc(o.uid)}">删除</button></div></div>
+        </article>`;
+      }).join("")}</div>
+    </details>`;
+  }).join(""):`<div class="today-empty">${all.length?"该状态下没有订单":"今天还没有订单"}</div>`;
+  document.querySelectorAll("#today .today-estate").forEach(g=>g.addEventListener("toggle",()=>{
+    if(g.open)collapsedTodayGroups.delete(g.dataset.groupKey);
+    else collapsedTodayGroups.add(g.dataset.groupKey);
+  }));
  bindOrderActions();
 }
 function bindOrderActions(){
