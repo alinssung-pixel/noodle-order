@@ -360,6 +360,9 @@ table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;ove
 #today .today-deliver-btn.undo{color:#176b3a!important;border-color:#b5d2bd!important}
 #today .today-entry-flavors{display:flex;flex-wrap:wrap;align-items:flex-start;gap:5px 12px;margin-top:4px;font-size:13px;line-height:1.4;color:#1e2024}
 #today .today-entry-flavor{white-space:nowrap;font-weight:500}
+/* 仅今日订单：用淡底色区分肉酱口味，其余口味保持原来的纯文字 */
+#today .today-entry-flavor[data-flavor="番茄肉酱"]{background:#fce8e6;color:#8b302c;border-radius:6px;padding:2px 5px;font-weight:600}
+#today .today-entry-flavor[data-flavor="香菇肉酱"]{background:#ede5f8;color:#5d3d80;border-radius:6px;padding:2px 5px;font-weight:600}
 #today .today-delivered-at{margin-top:4px;font-size:11px;color:#66716b}
 #today .today-entry-actions{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-top:10px}
 #today .today-copy-actions,#today .today-manage-actions{display:flex;gap:6px;align-items:center;min-width:0}
@@ -906,7 +909,7 @@ function renderToday(){
         const done=isDelivered(o);
         const full=String(o.address||"").trim();
         const short=g.estate!=="其他地址"&&full.startsWith(g.estate)?full.slice(g.estate.length).trim()||full:full;
-        const flavors=FLAVORS.filter(f=>(Number(o.items?.[f])||0)>0).map(f=>`<span class="today-entry-flavor">${esc(f)} × ${Number(o.items[f])}</span>`).join("");
+        const flavors=FLAVORS.filter(f=>(Number(o.items?.[f])||0)>0).map(f=>`<span class="today-entry-flavor" data-flavor="${esc(f)}">${esc(f)} × ${Number(o.items[f])}</span>`).join("");
         return `<article class="today-entry" role="listitem">
           <div class="today-entry-main">
             <div class="today-entry-info"><div class="today-entry-id">${esc(o.id)}</div><div class="today-entry-address">${esc(short)}</div>${o.phone?`<div class="today-entry-phone">${esc(o.phone)}</div>`:""}${o.note?`<div class="today-entry-note">备注：${esc(o.note)}</div>`:""}</div>
